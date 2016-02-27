@@ -1,0 +1,55 @@
+beamline = "xpp"
+
+# max size of caching (for each detector!!)
+cachesize_MB = 500.
+
+# for path: use $HOME for the home
+datapath = "/reg/d/psdm"
+cachepath = "$HOME/.cache/x3py"
+scan     = "ControlData*pvControls"
+scanMon  = "ControlData*pvMonit"
+
+epics    = "EpicsArch.0:NoDevice.0"
+
+detectors_xpp = """
+  events  = EvrData::DataV4/NoDetector.0:Evr.0/present
+  ipm1    = IpmFex*/NH2-SB1-IPM-01
+  ipm2    = IpmFex*/XppSb2*Ipm
+  ipm3    = IpmFex*/XppSb3*Ipm
+  diode2  = IpmFex*/XppSb3*Pim
+  diode3  = IpmFex*/XppSb4*Pim
+  diode3  = IpmFex*/XppSb4*Pim
+  diodeU  = IpmFex*/XppEnds_Ipm0
+  diodeU  = IpmFex*/XppEndstation
+  lom_bpm = IpmFex*/XppMon_Pim0
+  encoder = Data*/XppGon.0:Encoder.0
+  timeTool = TIMETOOL:FLTPOS$
+  timeTool = FLTPOS$
+  adc      = Gsc16ai::DataV*/XppEndstation.0:Gsc16ai.0
+  encoder  = UsdUsb*/XppEndstation.0:USDUSB.0
+  eventCode = EvrData
+  opal2    = Camera::Frame*/XppEndstation.0:Opal1000.2
+  cspad    = CsPad::ElementV2/XppGon.0:Cspad.0
+  cs140    = CsPad2x2::ElementV1/XppGon.0:Cspad2x2.0
+  cs140_1  = CsPad2x2::ElementV1/XppGon.0:Cspad2x2.1
+  yag1     = Camera::Frame*/XppSb1Pim.1
+  yag2     = Camera::Frame*/XppSb3Pim.1
+  yag3     = Camera::Frame*/XppSb4Pim.1
+  opal0    = Camera::Frame*/XppEndstation.0:Opal1000.0
+  opal1    = Camera::Frame*/XppEndstation.0:Opal1000.1
+  opal2    = Camera::Frame*/XppEndstation.0:Opal1000.2
+  rayonix  = Camera::Frame*/XppSb1Pim.0:Rayonix.0
+"""
+
+# Common detectors
+detectors_common = """
+  phasec = BldDataPhaseCavity/PhaseCavity
+  ebeam  = BldDataEBeam*/EBeam
+  gasdet = GasDetEnergy/FEEGasDetEnergy
+  gasdet = Bld::BldDataFEEGasDetEnergy/NoDetector.0:NoDevice.2
+  daqFilter = L3T::DataV*/Event
+  xtcav     = Camera::FrameV1/XrayTransportDiagnostic.0:Opal1000.0/
+  yagH2  = Camera::FrameV1/XrayTransportDiagnostic.30:Tm6740.0
+  yag3m  = Camera::FrameV1/XrayTransportDiagnostic.4:Tm6740.3
+  evrBool = EvrData::DataV4/NoDetector.0:Evr.0/present"
+"""
