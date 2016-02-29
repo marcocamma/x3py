@@ -1,7 +1,9 @@
 beamline = "xpp"
 
 # max size of caching (for each detector!!)
-cachesize_MB = 500.
+cachesize_GB = 500.
+# max size of dataset to read, it avoids crushing computers ... if d.cspad.data[:]
+readlimit_GB = 2
 
 # for path: use $HOME for the home
 datapath = "/reg/d/psdm"

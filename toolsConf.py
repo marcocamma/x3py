@@ -68,7 +68,8 @@ class ConfFile(object):
     self.beamline = d["beamline"]
     self.scan     = d["scan"]
     self.scanMon  = d["scanMon"]
-    self.cachesizeMB = d["cachesize_MB"]
+    self.cachesizeGB = d["cachesize_GB"]
+    self.readlimitGB = d["readlimit_GB"]
     for k in ["datapath","cachepath"]:
       v = d[k].replace("$HOME",os.environ["HOME"])
       self.__dict__[k] = v
@@ -86,4 +87,4 @@ file_home    = os.environ["HOME"] + "./.x3py.rc"
 file_cwd     = os.path.curdir     + "./x3py_config"
 files = [file_default,file_home,file_cwd]
 files = [f for f in files if os.path.exists(f)]
-defaultconf = ConfFile(files) 
+config = ConfFile(files) 

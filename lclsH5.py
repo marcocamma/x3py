@@ -5,10 +5,10 @@ import numpy as np
 
 import x3py.lclsDet as lclsDet
 from   x3py.toolsLog import log
-from   x3py.toolsConf import defaultconf
+from   x3py.toolsConf import config
 from   x3py.toolsVarious import iterfy,DropObject
 
-memory = defaultconf.joblibcache
+memory = config.joblibcache
 g_epicsSignature = "Epics::EpicsPv"
 
 @functools.lru_cache(maxsize=None)
@@ -59,7 +59,7 @@ class H5(object):
     self.findScan()
     
 
-  def findScan(self,conf=defaultconf):
+  def findScan(self,conf=config):
     regex = conf.scan
     r = regex.replace("*","\S+")
     h5,path=makeLists(self.h5,r,strip=False)
@@ -70,7 +70,7 @@ class H5(object):
       name = n[0,i].decode()
       self.__dict__["scan"]._add(name,v[:,i])
 
-  def findDetectors(self,conf=defaultconf):
+  def findDetectors(self,conf=config):
     detList = conf.detectors
     h5list   = self._h5list
     pathlist = self._pathlist

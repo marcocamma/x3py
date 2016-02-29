@@ -2,7 +2,7 @@ import collections
 import numpy as np
 from   x3py.toolsLog import log
 
-def toList(sl,n):
+def toSliceOrList(sl,n):
   """ Convert array of bools, range, slices to ranges; if input is something
       else raise error """
   if isinstance(sl,slice):
@@ -13,8 +13,6 @@ def toList(sl,n):
     sl = list(idx)
   elif isinstance(sl,int) and (sl<n):
     sl = [sl,]
-  else:
-    raise TypeError("argument has to be int,array of bools or slices")
   return sl
 
 
@@ -22,9 +20,20 @@ def toList(sl,n):
   """ Convert array of bools, range, slices to ranges; if input is something
       else raise error """
   if isinstance(sl,slice):
-    sl = list(sl.indices(n))
+    sl = list(range(*sl.indices(n)))
+  elif isinstance(sl,tuple):
+    sl = list(sl)
+  elif isinstance(sl,range):
+    sl = list(sl)
+  elif (type(sl) == np.ndarray) and (sl.shape[0] == n):
+    sl = sl.astype(np.bool)
+    idx = np.argwhere(sl).ravel()
+    sl = list(idx)
+  elif isinstance(sl,int) and (sl<n):
+    sl = [sl,]
   else:
-    sl = toSliceOrList(sl,n)
+    raise TypeError("argument has to be int,array of bools, slice or range,\
+    found %s (type: %s)"%(str(sl),type(sl)))
   return sl
 
 def sliceArgToRange(sl,n):

@@ -14,7 +14,7 @@ import numpy as np
 import time
 from x3py.toolsLog import log
 from x3py import toolsVarious
-from x3py.toolsConf import defaultconf
+from x3py.toolsConf import config
 
 class Detector(object):
   """ Abstract detector class, should be smart enough to handle 0D,1D and 2D data
@@ -53,7 +53,7 @@ class Detector(object):
       self.itemshape = oneShot.shape
       self.itemsize  = oneShot.nbytes
     self.sizes = self.itemsize*self.lens
-    self._datasetMB   = np.sum(self.sizes)/1024./1024.
+    self._datasetGB   = np.sum(self.sizes)/1024./1024./1024.
 
   @property
   def data(self):
@@ -63,7 +63,7 @@ class Detector(object):
   def time(self):
     return getitemWrapper(self,"time")
 
-  def get(self,calibSlice=None,shotSlice=None,what="data",ravel=True):
+  def getCalibs(self,calibSlice=None,shotSlice=None,what="data",ravel=True):
     nC = self.nCalib
     getD = self._getData
     getT = self._getTimeStamp
@@ -87,18 +87,23 @@ class Detector(object):
     shotSlice = self._applyFilterToShotSlice(shotSlice)
     if what == "time":
       if self._timecache is None:
-        self._timecache = self.get(what="time",ravel=True)
+        self._timecache = self.getCalibs(what="time",ravel=True)
       ret = self._timecache[shotSlice]
     else:
-      if self._datasetMB < defaultconf.cachesizeMB:
+      if self._datasetGB < config.cachesizeGB:
         if self._datacache is None:
-          self._datacache = self.get(what="data",ravel=True)
+          self._datacache = self.getCalibs(what="data",ravel=True)
         ret = self._datacache[shotSlice]
       elif self.nCalib == 1:
         ret = self._getData(0,shotSlice)
       else:
-        args = self._shotSliceToCalibIndices(shotSlice)
-        data = [self.get(*a,what=what,ravel=True) for a in args]
+        args,nShotsToRead = self._shotSliceToCalibIndices(shotSlice)
+        # check read limit
+        toRead = nShotsToRead*self.itemsize/1024/1024/1024
+        if toRead > config.readlimitGB:
+          raise ValueError("You are trying to read %.2f Gb in one go !!, change
+            the readlimit_GB in the configuration file if you want")
+        data = [self.getCalibs(*a,what=what,ravel=True) for a in args]
         ret = np.concatenate( data )
     return ret
 
@@ -108,17 +113,18 @@ class Detector(object):
     return shotSlice
 
   def _shotSliceToCalibIndices(self,shotSlice):
-    """ helper function to 'partition' shotSlice into calibcycles """
-    # select cache based on what we want to read
-    shotSlice = toolsVarious.toSliceOrList(shotSlice,self.nShots)
+    """ helper function to 'partition' shotSlice into calibcycles; 
+        input (shotSlice) could be a range, list, booleans, slice """
+    shotSlice = toolsVarious.toList(shotSlice,self.nShots)
     args = [ [] for i in range(self.nCalib) ]
+    nShotsToRead = 0
     for s in shotSlice:
       calib,shotInCalib =  _fromShotIndexToCalibShot(s,self._lenscumsum)
       args[calib].append(shotInCalib)
+      nShotsToRead += 1
     # exclude empy calibs
     args = [ [i,a] for (i,a) in enumerate(args) if len(a)> 0 ]
-    return args
-      
+    return args,nShotsToRead
  
   def __getitem__(self,x):
     return self.getShots(x,what="data")
