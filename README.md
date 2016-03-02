@@ -26,7 +26,7 @@ d.ipm3.sum.defineFilter(idx[-1])
 # check correlations
 def mean(img):  return img.mean(-1).mean(-1).mean(-1)
 shots = np.randon.random_integers(0,d.imp3.sum.time[:].shape[0],200)
-avImg = np.asarray( [mean(d.cspad.data(i)) for i in idx] )
+avImg = np.asarray( [mean(d.cspad.data(i)) for i in shots] )
 mon   = d.ipm3.sum[shots]
 plt.plot(mon,avImg,"o"); # check that there are no missing shots (i.e. that x and y still correlates"
 ```
