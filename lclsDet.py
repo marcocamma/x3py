@@ -11,6 +11,7 @@ from   x3py.abstractDet    import Detector
 
 class Hdf5Detector(object):
   def __init__(self,mne,calibs,time_field="/time"):
+    self.name = mne
     self.calibs = calibs
     self._time_field = time_field
     self.nCalib = len(calibs)
@@ -68,6 +69,7 @@ class StructuredArrayDetector(object):
       self.parent = Hdf5Detector(mne,calibs)
     else:
       self.parent = parent
+    self.name = mne
     self.nCalib = self.parent.nCalib
     data = self.parent.getDataPointer(0)
     for name in data.dtype.names:
@@ -95,7 +97,7 @@ class StructuredArrayDetector(object):
     return time
 
 def defineDetector(mne,calibs):
-  print('Defining %s...'%mne,mne,end="")
+  c=toolsVarious.CodeBlock('Defining %s...'%mne)
   t0 = time.time()
   det =  Hdf5Detector(mne,calibs)
   data = det.getDataPointer(0)
@@ -110,6 +112,6 @@ def defineDetector(mne,calibs):
     dtype = det.getDataPointer(0).dtype
     det = Detector(mne,det.getData,det.getTimeStamp,parent=det,dtype=dtype)
     print("..(as general detector)..",end="")
-  print("...done : %.1f" % (time.time()-t0) )
+  c.done()
   return det
  

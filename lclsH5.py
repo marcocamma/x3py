@@ -71,7 +71,7 @@ class H5(object):
       self.__dict__["scan"]._add(name,v[:,i])
 
   def findDetectors(self,conf=config):
-    detList = conf.detectors
+    detList = conf.detectorsToMatch
     h5list   = self._h5list
     pathlist = self._pathlist
     # TODO: this part is not very efficient since I loop for every detector 
