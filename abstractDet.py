@@ -23,7 +23,7 @@ class Detector(object):
   _timecache = None
   def __init__(self,mne,getData,getTimeStamp,isOkFilter=None,nCalib=None,
     parent=None,dtype=None):
-    self.mne = mne
+    self.name = mne
     if isOkFilter is not None:
       self._isOk =np.argwhere(isOkFilter).ravel()
     else:
@@ -39,9 +39,12 @@ class Detector(object):
     # get the number of shots per calibcycle
     self.lens = np.asarray( [getTimeStamp(i).shape[0] for i in range(self.nCalib) ] )
     self._lenscumsum = np.cumsum(self.lens)
-    self.nShots = np.sum(self.lens)
+    self.unFilteredNShots = np.sum(self.lens)
 
     self.parent   = parent
+    # register detector in database
+    fullname = parent.name + "." + mne
+    config.detectors[fullname] = self
     self.dtype    = dtype
     
     # what follows is for determining shapes and sizes...
@@ -84,7 +87,15 @@ class Detector(object):
         be the first one of the second calibcycle;
         The idea behind such kind of access is data storage independent of
         calibcycles """
+    try:
+      print("before",shotSlice.shape,shotSlice)
+    except: 
+      pass
     shotSlice = self._applyFilterToShotSlice(shotSlice)
+    try:
+      print("after",shotSlice.shape,shotSlice)
+    except: 
+      pass
     if what == "time":
       if self._timecache is None:
         self._timecache = self.getCalibs(what="time",ravel=True)
@@ -101,11 +112,19 @@ class Detector(object):
         # check read limit
         toRead = nShotsToRead*self.itemsize/1024/1024/1024
         if toRead > config.readlimitGB:
-          raise ValueError("You are trying to read %.2f Gb in one go !!, change
-            the readlimit_GB in the configuration file if you want")
+          msg  = "You are trying to read %.2f Gb in one go!!" % toRead
+          msg += ",change the readlimit_GB (currently at %.2f Gb)" % \
+                 config.readlimitGB
+          msg += " in the configuration file if you are sure"
+          raise ValueError(msg)
         data = [self.getCalibs(*a,what=what,ravel=True) for a in args]
         ret = np.concatenate( data )
     return ret
+
+  def defineFilter(self,isOkFilter):
+    """ Define filter to use, pass None to not use any filter """
+    self._isOk  =np.argwhere(isOkFilter).ravel()
+    self._nShotsInFilter= self._isOk.shape[0]
 
   def _applyFilterToShotSlice(self,shotSlice):
     if self._isOk is not None:
@@ -115,7 +134,7 @@ class Detector(object):
   def _shotSliceToCalibIndices(self,shotSlice):
     """ helper function to 'partition' shotSlice into calibcycles; 
         input (shotSlice) could be a range, list, booleans, slice """
-    shotSlice = toolsVarious.toList(shotSlice,self.nShots)
+    shotSlice = toolsVarious.toList(shotSlice,self.unFilteredNShots)
     args = [ [] for i in range(self.nCalib) ]
     nShotsToRead = 0
     for s in shotSlice:
@@ -140,8 +159,8 @@ def _fromShotIndexToCalibShot(shotNum,calibsCumSum):
   if shotNum < calibsCumSum[0]:
     calib,shot=0,shotNum
   else:
-    calib = np.argwhere(shotNum//calibsCumSum==0)[0]-1
-    shot  = shotNum-calibsCumSum[calib]
+    calib = int( np.argwhere(shotNum//calibsCumSum==0)[0] )
+    shot  = shotNum-calibsCumSum[calib-1]
   return calib,shot
 
 def _interpretSlices(reader,x,nCalib,ravel,shotShape=(1,)):
