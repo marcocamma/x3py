@@ -1,7 +1,7 @@
 beamline = "xpp"
 
 # max size of caching (for each detector!!)
-cachesize_GB = 500.
+cachesize_GB = 2.
 # max size of dataset to read, it avoids crushing computers ... if d.cspad.data[:]
 readlimit_GB = 2
 

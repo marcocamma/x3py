@@ -2,6 +2,7 @@ import os
 import numpy as np
 import functools
 from x3py.toolsVarious import iterfy
+from x3py import toolsOS
 from joblib import Memory
 
 
@@ -44,6 +45,7 @@ class ConfFile(object):
   fileDict = None
   pars     = None
   joblibcache = None
+  detectors = dict()
 
   def __init__(self,confFile):
     """ confFile can be a list of files, will be read (and the dict updated) in
@@ -75,10 +77,12 @@ class ConfFile(object):
       self.__dict__[k] = v
     if not os.path.isdir(self.cachepath): os.makedirs(self.cachepath)
     self.joblibcache = Memory(cachedir=self.cachepath, verbose=0,compress=True)
+    print("Using %s as cache folder, current size %s" % \
+      (self.cachepath,toolsOS.du(self.cachepath)))
     d_beamline = _parseDetectorStr(d["detectors_common"])
     d_common   = _parseDetectorStr(d["detectors_" + self.beamline])
-    self.detectors = d_beamline
-    self.detectors.update(d_common)
+    self.detectorsToMatch = d_beamline
+    self.detectorsToMatch.update(d_common)
 
 path = os.path.split(__file__)[0]
 

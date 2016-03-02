@@ -7,7 +7,7 @@ from x3py.abstractDet import Detector
 class EventCode(object):
   ""
   def __init__(self,mne,parent,autoDefine=True):
-    self.mne = mne
+    self.name = mne
     self.parent = parent
     self.nCalib = parent.nCalib
     self._out   = dict()
