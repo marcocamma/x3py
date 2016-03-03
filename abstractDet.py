@@ -24,10 +24,6 @@ class Detector(object):
   def __init__(self,mne,getData,getTimeStamp,isOkFilter=None,nCalib=None,
     parent=None,dtype=None):
     self.name = mne
-    if isOkFilter is not None:
-      self._isOk =np.argwhere(isOkFilter).ravel()
-    else:
-      self._isOk = None
     self._getData = getData
     self._getTimeStamp = getTimeStamp
     if parent is None:
@@ -37,10 +33,12 @@ class Detector(object):
     if self.nCalib is None:
       log.warning("In det %s,nCalib is None",mne)
     # get the number of shots per calibcycle
-    self.lens = np.asarray( [getTimeStamp(i).shape[0] for i in range(self.nCalib) ] )
-    self._lenscumsum = np.cumsum(self.lens)
-    self.unFilteredNShots = np.sum(self.lens)
-
+    self._unFilteredLens = \
+      np.asarray( [getTimeStamp(i).shape[0] for i in range(self.nCalib) ] )
+    self._unFilteredCumLens = np.cumsum(self._unFilteredLens)
+    self._unFilteredNShots = np.sum(self._unFilteredLens)
+    # define filter
+    self.defineFilter(isOkFilter)
     self.parent   = parent
     # register detector in database
     fullname = parent.name + "." + mne
@@ -55,8 +53,8 @@ class Detector(object):
       oneShot = getData(0,0)
       self.itemshape = oneShot.shape
       self.itemsize  = oneShot.nbytes
-    self.sizes = self.itemsize*self.lens
-    self._datasetGB   = np.sum(self.sizes)/1024./1024./1024.
+    self._calibsizes = self.itemsize*self._unFilteredLens
+    self._datasetGB   = np.sum(self._calibsizes)/1024**3
 
   @property
   def data(self):
@@ -87,15 +85,7 @@ class Detector(object):
         be the first one of the second calibcycle;
         The idea behind such kind of access is data storage independent of
         calibcycles """
-    try:
-      print("before",shotSlice.shape,shotSlice)
-    except: 
-      pass
     shotSlice = self._applyFilterToShotSlice(shotSlice)
-    try:
-      print("after",shotSlice.shape,shotSlice)
-    except: 
-      pass
     if what == "time":
       if self._timecache is None:
         self._timecache = self.getCalibs(what="time",ravel=True)
@@ -123,8 +113,18 @@ class Detector(object):
 
   def defineFilter(self,isOkFilter):
     """ Define filter to use, pass None to not use any filter """
-    self._isOk  =np.argwhere(isOkFilter).ravel()
-    self._nShotsInFilter= self._isOk.shape[0]
+    if isOkFilter is not None:
+      self._isOk  = np.argwhere(isOkFilter).ravel()
+      self.nShots = self._isOk.shape[0]
+    else:
+      self._isOk  = None
+      self.nShots = self._unFilteredNShots
+
+  def chunks(self,sizeGB=0.5,n=None):
+    if n is None:
+      itemsize = self.itemsize/1024**3
+      n = int(sizeGB/itemsize)
+    return toolsVarious.chunk(self.nShots,n)
 
   def _applyFilterToShotSlice(self,shotSlice):
     if self._isOk is not None:
@@ -134,11 +134,11 @@ class Detector(object):
   def _shotSliceToCalibIndices(self,shotSlice):
     """ helper function to 'partition' shotSlice into calibcycles; 
         input (shotSlice) could be a range, list, booleans, slice """
-    shotSlice = toolsVarious.toList(shotSlice,self.unFilteredNShots)
+    shotSlice = toolsVarious.toList(shotSlice,self._unFilteredNShots)
     args = [ [] for i in range(self.nCalib) ]
     nShotsToRead = 0
     for s in shotSlice:
-      calib,shotInCalib =  _fromShotIndexToCalibShot(s,self._lenscumsum)
+      calib,shotInCalib =  _fromShotIndexToCalibShot(s,self._unFilteredCumLens)
       args[calib].append(shotInCalib)
       nShotsToRead += 1
     # exclude empy calibs

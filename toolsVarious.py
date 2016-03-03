@@ -107,6 +107,25 @@ def flush(what="stdout"):
   if what == "stdout": what = sys.__dict__[what]
   what.flush()
 
+def chunk(iterableOrNum, size):
+  temp = []
+  try:
+    n = len(iterableOrNum)
+  except TypeError:
+    n = iterableOrNum
+  nGroups = int(np.ceil(float(n)/size))
+  for i in range(nGroups):
+    m = i*size
+    M = (i+1)*size; M=min(M,n)
+    if (m>=n):
+      break
+    temp.append( slice(m,M) )
+  try:
+    ret = [iterableOrNum[x] for x in temp]
+  except TypeError:
+    ret = temp
+  return ret
+
 class CodeBlock(object):
   def __init__(self,s):
     self.t0 = time.time()

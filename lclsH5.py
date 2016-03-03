@@ -85,6 +85,6 @@ class H5(object):
       #log.info("Found %s (regex: %s)",mne,r)
       if len(calibs) > 0:
         if mne in self.__dict__:
-          log.warning("Overwriting detector",mne)
+          log.warning("Overwriting detector %s, pattern %s",mne,regex)
           #log.warning("Warning: in findDetectors, more than one templates matches %s",patterns)
         self.__dict__[mne] = lclsDet.defineDetector(mne,calibs)
