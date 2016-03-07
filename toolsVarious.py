@@ -21,7 +21,9 @@ def toSliceOrList(sl,n):
 def toList(sl,n):
   """ Convert array of bools, range, slices to ranges; if input is something
       else raise error """
-  if isinstance(sl,slice):
+  if isinstance(sl,list):
+    sl = sl
+  elif isinstance(sl,slice):
     sl = list(range(*sl.indices(n)))
   elif isinstance(sl,tuple):
     sl = list(sl)
