@@ -44,6 +44,17 @@ class Detector(object):
     fullname = parent.name + "." + mne
     config.detectors[fullname] = self
     self.dtype    = dtype
+
+    # try to determine internal hdf5 chunking
+    det = self
+    while ( "parent" in det.__dict__):
+      det = det.__dict__["parent"]
+    _calib = det.getDataPointer(0)
+    if hasattr(_calib,"chunks") and (_calib.chunks is not None):
+      self._hdf5Chunks = _calib.chunks[0]
+    else:
+      self._hdf5Chunks = 1
+    
     
     # what follows is for determining shapes and sizes...
     if dtype is not None:
@@ -108,7 +119,6 @@ class Detector(object):
           msg += " in the configuration file if you are sure"
           raise ValueError(msg)
         data = [self.getCalibs(*a,what=what,ravel=True) for a in args]
-        print(self.name,args)
         if len(data) == 1:
           ret = data[0]
         else:
@@ -128,6 +138,9 @@ class Detector(object):
     if n is None:
       itemsize = self.itemsize/1024**3
       n = int(sizeGB/itemsize)
+    # round up in multiples of chunks
+    if self._hdf5Chunks > 1:
+      n = (n // self._hdf5Chunks) * self._hdf5Chunks
     return toolsVarious.chunk(self.nShots,n)
 
   def _applyFilterToShotSlice(self,shotSlice):
