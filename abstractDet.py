@@ -108,7 +108,11 @@ class Detector(object):
           msg += " in the configuration file if you are sure"
           raise ValueError(msg)
         data = [self.getCalibs(*a,what=what,ravel=True) for a in args]
-        ret = np.concatenate( data )
+        print(self.name,args)
+        if len(data) == 1:
+          ret = data[0]
+        else:
+          ret = np.concatenate( data )
     return ret
 
   def defineFilter(self,isOkFilter):
@@ -188,7 +192,9 @@ def _interpretSlices(reader,x,nCalib,ravel,shotShape=(1,)):
     if d.ndim>1 and d.ndim == len(shotShape):
       d=d[np.newaxis,:]; # has to have a shot index !
     temp.append(d)
-  if ravel:
+  if ravel and len(temp)==1:
+    temp = temp[0]; # avoids useless mamory copy
+  elif ravel and len(temp) > 1:
     temp = np.concatenate( temp )
   else:
     temp = np.stack( temp )
