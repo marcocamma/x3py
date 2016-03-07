@@ -141,8 +141,10 @@ class Detector(object):
       calib,shotInCalib =  _fromShotIndexToCalibShot(s,self._unFilteredCumLens)
       args[calib].append(shotInCalib)
       nShotsToRead += 1
-    # exclude empy calibs
+    # exclude empyy calibs
     args = [ [i,a] for (i,a) in enumerate(args) if len(a)> 0 ]
+    # try to put together read of the same calib; this speed up compressed cspad ...
+    args = [ (calib,toolsVarious.tryToSlice(listOfShots)) for (calib,listOfShots) in args ]
     return args,nShotsToRead
  
   def __getitem__(self,x):
