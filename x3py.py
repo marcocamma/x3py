@@ -22,6 +22,8 @@ class Dataset(x3py.lclsH5.H5):
       dets = self.detectors.values()
     else:
       dets = detectorList
+    # TODO This should be improved since many detectors share the same time timestamps
+    # (for example all 'fields' of IPMs, all event codes
     idx = toolsMatchTimeStamps.matchTimeStamps(*dets,returnCommonTimeStamp=False)
     for (d,f) in zip(dets,idx):
       d.defineFilter(f)
