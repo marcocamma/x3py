@@ -11,31 +11,31 @@ from   x3py.toolsVarious import iterfy,DropObject
 memory = config.joblibcache
 g_epicsSignature = "Epics::EpicsPv"
 
-@functools.lru_cache(maxsize=None)
-@memory.cache
-def getSubFields(h5data,regex="/time$",returnAbsolute=False,returnHandle=False):
+#@functools.lru_cache(maxsize=None)
+def getSubFields(h5data,basepath="Configure:0000/Run:0000",
+  regex="/time$",returnAbsolute=False,returnHandle=False,strip=True):
+  r = re.compile(regex)
   if isinstance(h5data,str): h5data = h5py.File(h5data,"r")
+  if basepath is not None: h5data=h5data[basepath]
   subFolders = []
-  h5data.visit(subFolders.append)
+  def isOk(name):
+    if r.search(name) is not None:
+      if strip: name = r.sub("",name)
+      if basepath is not None: name = basepath + "/" + name
+      subFolders.append(name)
+  h5data.visit(isOk)
   if returnAbsolute:
     subFolders = ["%s/%s" % (h5data.name,f) for f in subFolders]
   if returnHandle:
     subFolders = [ (h5data,f) for f in subFolders ]
   return subFolders
 
-def filterList(list,regex,strip=False):
-  r = re.compile(regex)
-  if strip:
-    return [r.sub("",l) for l in list if r.search(l) is not None ]
-  else:
-    return [l for l in list if r.search(l) is not None ]
-
 def makeLists(h5handles,regex="/time$",strip=True):
-  pathlist = filterList(getSubFields(h5handles[0]),regex,strip=strip)
+  pathlist = getSubFields(h5handles[0],regex=regex,strip=strip)
   pathlist.sort()
   h5list   = (h5handles[0],)*len(pathlist)
   for h5 in h5handles[1:]:
-    temp = filterList(getSubFields(h5),regex,strip=strip)
+    temp = getSubFields(h5,regex=regex,strip=strip)
     temp.sort()
     pathlist += temp
     h5list   += (h5,)*len(temp)

@@ -2,6 +2,7 @@ import collections
 import numpy as np
 import time
 import sys
+import re
 from   x3py.toolsLog import log
 
 def tryToSlice(v):
@@ -54,6 +55,14 @@ def toList(sl,n):
     raise TypeError("argument has to be int,array of bools, slice or range,\
     found %s (type: %s)"%(str(sl),type(sl)))
   return sl
+
+def filterList(list,regex,strip=False):
+  r = re.compile(regex)
+  if strip:
+    return [r.sub("",l) for l in list if r.search(l) is not None ]
+  else:
+    return [l for l in list if r.search(l) is not None ]
+
 
 def sliceArgToRange(sl,n):
   """ Convert array of bools, range, slices to ranges; if input is something
@@ -137,7 +146,7 @@ def chunk(iterableOrNum, size):
     temp.append( slice(m,M) )
   try:
     ret = [iterableOrNum[x] for x in temp]
-  except TypeError:
+  except (TypeError,IndexError):
     ret = temp
   return ret
 
