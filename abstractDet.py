@@ -41,21 +41,26 @@ class Detector(object):
     self.defineFilter(isOkFilter)
     self.parent   = parent
     # register detector in database
-    fullname = parent.name + "." + mne
+    if parent is not None:
+      fullname = parent.name + "." + mne
+    else:
+      fullname = mne
     config.detectors[fullname] = self
     self.dtype    = dtype
 
     # try to determine internal hdf5 chunking
-    det = self
-    while ( "parent" in det.__dict__):
-      det = det.__dict__["parent"]
-    _calib = det.getDataPointer(0)
-    if hasattr(_calib,"chunks") and (_calib.chunks is not None):
-      self._hdf5Chunks = _calib.chunks[0]
-    else:
+    if parent is None:
       self._hdf5Chunks = 1
-    
-    
+    else:
+      det = self
+      while ( "parent" in det.__dict__):
+        det = det.__dict__["parent"]
+      _calib = det.getDataPointer(0)
+      if hasattr(_calib,"chunks") and (_calib.chunks is not None):
+        self._hdf5Chunks = _calib.chunks[0]
+      else:
+        self._hdf5Chunks = 1
+      
     # what follows is for determining shapes and sizes...
     if dtype is not None:
       self.itemshape = dtype.shape

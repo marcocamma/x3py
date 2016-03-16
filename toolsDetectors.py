@@ -1,7 +1,26 @@
 import numpy as np
 import pylab as plt
 from   x3py.toolsLog import log
+from   x3py.toolsVarious import iterfy
+from   x3py import abstractDet
 
+def wrapArray(mne,data,time):
+  if not isinstance(data,(list,tuple)):
+    data = (data,)
+    time = (time,)
+  nCalib = len(data)
+  def getData(calib,shotSlice=None):
+    if shotSlice is None:
+      return data[calib]
+    else:
+      return data[calib][shotSlice]
+  def getTimeStamp(calib,shotSlice=None):
+    if shotSlice is None:
+      return time[calib]
+    else:
+      return time[calib][shotSlice]
+  return abstractDet.Detector(mne,getData,getTimeStamp,nCalib=nCalib)
+ 
 def corrNonlinGetPar(linearDet,nonLinearDet,order=2,data_0=0,
     correct_0=0,plot=False,returnCorrectedDet=False):
   """ Find parameters for non linear correction
