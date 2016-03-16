@@ -11,7 +11,11 @@ class EventCode(object):
     self.parent = parent
     self.nCalib = parent.nCalib
     self._out   = dict()
+    for c in range(self.nCalib):
+      self._out[c] = dict()
+      self._out[c] = dict()
     self._foundCodes = []
+
     if autoDefine: [self._getData(i) for i in range(self.nCalib)]
 
   def getDet(self,code):
@@ -19,22 +23,20 @@ class EventCode(object):
     return self._defineDetector(code)
 
   def _getData(self,calib,shotSlice=None,code=140):
-    if calib not in self._out:
+    if code not in self._out[calib]:
       data = self.parent.getData(calib)
       nShots = data.shape[0]
-      self._out[calib] = dict()
-      self._out[calib] = dict()
       for i in range(nShots):
         codeList = data[i]["fifoEvents"]["eventCode"]
         for code in codeList:
           if code not in self._out[calib]:
             self._out[calib][code] =  np.zeros(nShots,dtype=np.bool)
           self._out[calib][code][i] = True
-    # add discovered keys
-    for code in self._out[calib].keys():
-      if code not in self._foundCodes:
-        self._foundCodes.append(code)
-        self._defineDetector(code)
+      # add discovered keys
+      for code in self._out[calib].keys():
+        if code not in self._foundCodes:
+          self._foundCodes.append(code)
+          self._defineDetector(code)
     if shotSlice is not None:
       return self._out[calib][code][shotSlice]
     else:
