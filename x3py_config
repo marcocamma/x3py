@@ -26,6 +26,7 @@ detectors_xpp = """
   lom_bpm = IpmFex*/XppMon_Pim0
   encoder = Data*/XppGon.0:Encoder.0
   timeTool = TTSPEC:
+  timeTool = TIMETOOL:
   adc      = Gsc16ai::DataV*/XppEndstation.0:Gsc16ai.0
   encoder  = UsdUsb*/XppEndstation.0:USDUSB.0
   eventCode = EvrData
