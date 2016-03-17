@@ -6,24 +6,31 @@ import numpy as np
 import x3py.lclsDet as lclsDet
 from   x3py.toolsLog import log
 from   x3py.toolsConf import config
-from   x3py.toolsVarious import iterfy,DropObject,CodeBlock
+from   x3py.toolsVarious import iterfy,DropObject,CodeBlock,filterList
 
 memory = config.joblibcache
 g_epicsSignature = "Epics::EpicsPv"
 
+@memory.cache
+def visitH5(h5file):
+  subFolders = []
+  h5data = h5py.File(h5file,"r")
+  subFolders = []
+  h5data.visit(subFolders.append)
+  return subFolders
+
 #@functools.lru_cache(maxsize=None)
 def getSubFields(h5data,basepath="Configure:0000/Run:0000",
   regex="/time$",returnAbsolute=False,returnHandle=False,strip=True):
+  if isinstance(h5data,str):
+    h5filename = h5data
+    h5data = h5py.File(h5filename,"r")
+  else:
+    h5filename = h5data.filename
   r = re.compile(regex)
-  if isinstance(h5data,str): h5data = h5py.File(h5data,"r")
-  if basepath is not None: h5data=h5data[basepath]
-  subFolders = []
-  def isOk(name):
-    if r.search(name) is not None:
-      if strip: name = r.sub("",name)
-      if basepath is not None: name = basepath + "/" + name
-      subFolders.append(name)
-  h5data.visit(isOk)
+  subFolders = visitH5(h5filename)
+  if basepath is not None: subFolders=filterList(subFolders,basepath,strip=False)
+  if regex    is not None: subFolders=filterList(subFolders,regex,strip=strip)
   if returnAbsolute:
     subFolders = ["%s/%s" % (h5data.name,f) for f in subFolders]
   if returnHandle:
