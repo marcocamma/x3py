@@ -128,7 +128,7 @@ def bytesToHuman(bytes,units="auto",fmt="%.2f %s"):
 
 def flush(what="stdout"):
   """ Flush strasm, default is stdout """
-  if what == "stdout": what = sys.__dict__[what]
+  if what == "stdout": what = getattr(sys,what)
   what.flush()
 
 def chunk(iterableOrNum, size):

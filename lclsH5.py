@@ -6,7 +6,7 @@ import numpy as np
 import x3py.lclsDet as lclsDet
 from   x3py.toolsLog import log
 from   x3py.toolsConf import config
-from   x3py.toolsVarious import iterfy,DropObject
+from   x3py.toolsVarious import iterfy,DropObject,CodeBlock
 
 memory = config.joblibcache
 g_epicsSignature = "Epics::EpicsPv"
@@ -53,8 +53,11 @@ class Dataset(object):
 class H5(object):
   def __init__(self,fnames,mode="r",driver=None):
     fnames  = iterfy(fnames)
+    
     self.h5 = [h5py.File(fname,mode=mode,driver=driver) for fname in fnames]
+    c = CodeBlock("Building paths list of HDF5 file(s)")
     self._h5list,self._pathlist = makeLists(self.h5)
+    c.done()
     self.findDetectors()
     self.findScan()
     
