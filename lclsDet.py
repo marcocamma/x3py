@@ -105,6 +105,9 @@ def defineDetector(mne,calibs):
   if mne.find("event")>-1:
     det = lclsSpecialDet.EventCode(mne,det)
     print("..(as eventcode detector)..",end="")
+  elif mne.lower().find("timetool")>-1:
+    det = lclsSpecialDet.TimeTool(mne,det)
+    print("..(as timetool detector)..",end="")
   elif toolsVarious.isStructuredArray(data):
     det = StructuredArrayDetector(mne,calibs,parent=det)
   else:

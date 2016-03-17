@@ -1,8 +1,11 @@
 """ Module to handle specific detectors like eventcodes, timetool, etc """
 import functools
 import numpy as np
+import re
 
 from x3py.abstractDet import Detector
+from x3py.toolsLog import log
+
 
 class EventCode(object):
   ""
@@ -49,4 +52,54 @@ class EventCode(object):
       getTimeStamp = self.parent.getTimeStamp
       d = Detector(mne,getData,getTimeStamp,parent=self)
       self.__dict__[mne] = d
+    return self.__dict__[mne]
+
+class TimeTool(object):
+  ""
+  def __init__(self,mne,parent):
+    self.name = mne
+    self.parent = parent
+    self._regex = dict (
+      ampl = ":AMPL$",
+      pos  = ":FLTPOS$",
+      fwhm = ":FLTPOSFWHM$"
+    )
+    dets = self._regex.keys()
+    calibs = dict( [ (det,self._getCalibForSubField(det)) for det in dets ] )
+    self._calibs = calibs
+    self.nCalib = len(calibs["ampl"])
+    for det in dets:
+      try:
+        self._defineDetector(det,calibs[det])
+      except IndexError:
+        log.warn("Could not define timetool det %s, found %d calibs",det,len(calibs[det]))
+    
+
+
+  def _getCalibForSubField(self,what="ampl"):
+    calibs = self.parent.calibs
+    regex  = self._regex[what]
+    r = re.compile(regex)
+    # calibs are list of tuples, each tuple is (h5handle,key)
+    c = [ cc for cc in calibs if r.search(cc[1]) is not None ]
+    return c
+
+
+  def _defineDetector(self,mne,calibs):
+    def getData(calib,shotslice=None):
+      h,k = calibs[calib]
+      if shotslice is None:
+        data = h[k]["data"][...]["value"]
+      else:
+        data = h[k]["data"][shotslice]["value"]
+      return data
+    def getTimeStamp(calib,shotslice=None):
+      h,k = calibs[calib]
+      if shotslice is None:
+        time = h[k]["time"][...]
+      else:
+        time = h[k]["time"][shotslice]
+      return time
+    d = Detector(self.name+"."+mne,getData,getTimeStamp,parent=self)
+    self.__dict__[mne] = d
     return self.__dict__[mne]
