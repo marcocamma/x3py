@@ -58,13 +58,16 @@ class Dataset(object):
     return [self.handle[p] for p in path] 
     
 class H5(object):
-  def __init__(self,fnames,mode="r",driver=None):
+  def __init__(self,fnames,detectors="all",exclude=None,mode="r",driver=None):
+    """ exclude : list of detectors to exclude """
     fnames  = iterfy(fnames)
     
     self.h5 = [h5py.File(fname,mode=mode,driver=driver) for fname in fnames]
     c = CodeBlock("Building paths list of HDF5 file(s)")
     self._h5list,self._pathlist = makeLists(self.h5)
     c.done()
+    self._detectorsToLookFor = detectors
+    self._detectorsToExclude = exclude
     self.findDetectors()
     self.findScan()
     
@@ -81,7 +84,16 @@ class H5(object):
       self.__dict__["scan"]._add(name,v[:,i])
 
   def findDetectors(self,conf=config):
-    detList = conf.detectorsToMatch
+    dets = self._detectorsToLookFor
+    detsconf = conf.detectorsToMatch
+    if dets == "all":
+      detList = conf.detectorsToMatch
+    else:
+      dets = iterfy(dets)
+      detList = dict( [(regex,det) for (regex,det) in conf.detectorsToMatch.items() if det in dets] )
+    if self._detectorsToExclude is not None:
+      exl = iterfy(self._detectorsToExclude)
+      detList = dict( [(regex,det) for (regex,det) in detList.items() if det not in exl ] )
     h5list   = self._h5list
     pathlist = self._pathlist
     # TODO: this part is not very efficient since I loop for every detector 
