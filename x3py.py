@@ -27,7 +27,7 @@ class Dataset(x3py.lclsH5.H5):
       if hasattr(d,"parent") and (d.parent is not None): parents[i] = d.parent
     # det time stamp for each parent ... it is a bit of an hack ...
     times = [ np.hstack([d.getTimeStamp(i) for i in range(d.nCalib)]) for d in parents ]
-    print(len(times))
+    #print(len(times))
     idx = toolsMatchTimeStamps.matchTimeStamps(*times,returnCommonTimeStamp=False)
     if detectorList is None:
       dets = self.detectors.values()
@@ -43,7 +43,7 @@ class Dataset(x3py.lclsH5.H5):
       dets = self.detectors.values()
     else:
       dets = detectorList
-    print(len(dets))
+    #print(len(dets))
     # TODO This should be improved since many detectors share the same time timestamps
     # (for example all 'fields' of IPMs, all event codes
     idx = toolsMatchTimeStamps.matchTimeStamps(*dets,returnCommonTimeStamp=False)

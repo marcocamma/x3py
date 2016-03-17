@@ -104,7 +104,7 @@ def defineDetector(mne,calibs):
   # order is important because eventCode is also a strctureArray
   if mne.find("event")>-1:
     det = lclsSpecialDet.EventCode(mne,det)
-    print("..(as eventcode detector)..",end="")
+    print("..(as eventCode detector, use .eventCode.autoDiscovery() if needed)..",end="")
   elif mne.lower().find("timetool")>-1:
     det = lclsSpecialDet.TimeTool(mne,det)
     print("..(as timetool detector)..",end="")

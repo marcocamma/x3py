@@ -9,7 +9,7 @@ from x3py.toolsLog import log
 
 class EventCode(object):
   ""
-  def __init__(self,mne,parent,autoDefine=True):
+  def __init__(self,mne,parent,autoDiscovery=False):
     self.name = mne
     self.parent = parent
     self.nCalib = parent.nCalib
@@ -18,12 +18,14 @@ class EventCode(object):
       self._out[c] = dict()
       self._out[c] = dict()
     self._foundCodes = []
+    if autoDiscovery: self.autoDiscovery()
 
-    if autoDefine: [self._getData(i) for i in range(self.nCalib)]
-
-  def getDet(self,code):
+  def getDetCode(self,code):
     """ return detector associated with a given code, defining it if needed """
     return self._defineDetector(code)
+
+  def autoDiscovery(self):
+    [self._getData(i) for i in range(self.nCalib)]
 
   def _getData(self,calib,shotSlice=None,code=140):
     if code not in self._out[calib]:
@@ -52,6 +54,8 @@ class EventCode(object):
       getTimeStamp = self.parent.getTimeStamp
       d = Detector(mne,getData,getTimeStamp,parent=self)
       self.__dict__[mne] = d
+    if code not in self._foundCodes:
+      log.warn("Asked for eventcode %d, but it could not be found",code)
     return self.__dict__[mne]
 
 class TimeTool(object):
