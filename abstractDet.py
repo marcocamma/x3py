@@ -16,6 +16,22 @@ from x3py.toolsLog import log
 from x3py import toolsVarious
 from x3py.toolsConf import config
 
+class DetectorFilter(object):
+  def __init__(self,det,boolIdx):
+    self._det = det
+    self._boolidx = boolIdx
+    self._idx     = np.argwhere(boolIdx).ravel()
+
+  def _getData(self,x):
+    return self._det.getShots(self._idx[x],what="data")
+
+  def _getTime(self,x):
+    return self._det.getShots(self._idx[x],what="time")
+
+
+  def __getitem__(self,x):
+    return self._getData(x)
+
 class Detector(object):
   """ Abstract detector class, should be smart enough to handle 0D,1D and 2D data
       (caching based on size); """
@@ -60,6 +76,9 @@ class Detector(object):
         self._hdf5Chunks = _calib.chunks[0]
       else:
         self._hdf5Chunks = 1
+
+    # filters container
+    self.filter = toolsVarious.DropObject()
       
     # what follows is for determining shapes and sizes...
     if dtype is not None:
@@ -129,6 +148,11 @@ class Detector(object):
         else:
           ret = np.concatenate( data )
     return ret
+
+  def addFilter(self,name,isOk):
+    dfilter = DetectorFilter(self,isOk)
+    self.filter._add(name,dfilter)
+    
 
   def defineFilter(self,isOkFilter):
     """ Define filter to use, pass None to not use any filter """

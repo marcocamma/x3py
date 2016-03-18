@@ -50,4 +50,7 @@ class Dataset(x3py.lclsH5.H5):
     for (d,f) in zip(dets,idx):
       d.defineFilter(f)
     c.done()
-    
+
+  def addFilter(self,name,boolIdx,detectors=None):
+    if detectors is None: detectors=self.detectors
+    for d in detectors.values(): d.addFilter(name,boolIdx)
