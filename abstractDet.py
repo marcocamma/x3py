@@ -57,11 +57,11 @@ class Detector(object):
     self.defineFilter(isOkFilter)
     self.parent   = parent
     # register detector in database
-    if parent is not None:
-      fullname = parent.name + "." + mne
-    else:
-      fullname = mne
-    config.detectors[fullname] = self
+#    if parent is not None:
+#      fullname = parent.name + "." + mne
+#    else:
+#      fullname = mne
+    config.detectors[mne] = self
     self.dtype    = dtype
 
     # try to determine internal hdf5 chunking
