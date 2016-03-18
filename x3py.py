@@ -36,6 +36,8 @@ class Dataset(x3py.lclsH5.H5):
       print(p,kids)
       for k in kids: k.defineFilter(filter)
     c.done()
+
+  def get(self,x): return eval('self.%s' % x)
     
   def _matchTimeStamps(self,detectorList=None):
     c=toolsVarious.CodeBlock("Time stamp matching started ...")
@@ -48,7 +50,7 @@ class Dataset(x3py.lclsH5.H5):
     # (for example all 'fields' of IPMs, all event codes
     idx = toolsMatchTimeStamps.matchTimeStamps(*dets,returnCommonTimeStamp=False)
     for (d,f) in zip(dets,idx):
-      d.defineFilter(f)
+      d.defineTimeStampFilter(f)
     c.done()
 
   def addFilter(self,name,boolIdx,detectors=None):

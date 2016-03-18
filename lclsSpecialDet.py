@@ -41,11 +41,28 @@ class EventCode(object):
       for code in self._out[calib].keys():
         if code not in self._foundCodes:
           self._foundCodes.append(code)
+          self._foundCodes.sort()
           self._defineDetector(code)
     if shotSlice is not None:
       return self._out[calib][code][shotSlice]
     else:
       return self._out[calib][code]
+
+  def __repr__(self):
+    s  = "lclsSpecialDet.EventCode (obj id %s)\n" % (hex(id(self)))
+    s += "  codes found (so far): %s\n" % str(self._foundCodes)
+    for c in self._foundCodes:
+      v = self.getDetCode(c)[:200]
+      try:
+        spacing_true  = "every %3s" % np.diff( np.argwhere(  v ).ravel() )[0] 
+      except IndexError:
+        spacing_true  = "Never    "
+      try:
+        spacing_false  = "every %3s" % np.diff( np.argwhere( ~v ).ravel() )[0] 
+      except IndexError:
+        spacing_false = "Never    "
+      s += "  |→ code %3d, True %s, False %s\n" % (c,spacing_true,spacing_false)
+    return s
 
   def _defineDetector(self,code):
     mne = "code_%d" % code
@@ -79,6 +96,12 @@ class TimeTool(object):
         log.warn("Could not define timetool det %s, found %d calibs",det,len(calibs[det]))
     
 
+  def __repr__(self):
+    s  = "lclsSpecialDet.TimeTool (obj id %s)\n" % (hex(id(self)))
+    for k in self._regex.keys():
+      d = getattr(self,k)
+      s += "  |→ %s\n" % d.__str__()
+    return s
 
   def _getCalibForSubField(self,what="ampl"):
     calibs = self.parent.calibs

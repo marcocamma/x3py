@@ -89,15 +89,18 @@ class DropObject(object):
     self._name = name
 
   def _add(self,name,data):
-    self.__dict__[name]=data
+    setattr(self,name,data)
+
+  def _keys(self):
+    return [x for x in self.__dict__.keys() if x.find("_") != 0]
 
   def __repr__(self):
-    return "dropObject with fields: "+str(self.__dict__.keys())
+    return "dropObject with fields: "+str(self._keys())
 
   def __getitem__(self,x):
-    return self.__dict__[x]
+    return getattr(self,x)
 
-  def __setitem__(self,name,var,setParent=True):
+  def __setitem__(self,name,var):
     self._add(name,var)
 
 def listWrapper(f,*args,**kwargs):

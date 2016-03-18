@@ -17,6 +17,7 @@ from x3py import toolsVarious
 from x3py.toolsConf import config
 
 class DetectorFilter(object):
+  """ use as storage for filtering on top of the timestampfilter (if defined) """
   def __init__(self,det,boolIdx):
     self._det = det
     self._boolidx = boolIdx
@@ -25,9 +26,13 @@ class DetectorFilter(object):
   def _getData(self,x):
     return self._det.getShots(self._idx[x],what="data")
 
+  def __repr__(self):
+    s = "Filter for det %s, kepping a fraction of %s" % \
+     (self._det.name,self._idx.shape[0]/self._det.nShots)
+    return s
+
   def _getTime(self,x):
     return self._det.getShots(self._idx[x],what="time")
-
 
   def __getitem__(self,x):
     return self._getData(x)
@@ -37,7 +42,7 @@ class Detector(object):
       (caching based on size); """
   _datacache = None
   _timecache = None
-  def __init__(self,mne,getData,getTimeStamp,isOkFilter=None,nCalib=None,
+  def __init__(self,mne,getData,getTimeStamp,timeStampMatchFilter=None,nCalib=None,
     parent=None,dtype=None):
     self.name = mne
     self._getData = getData
@@ -54,7 +59,7 @@ class Detector(object):
     self._unFilteredCumLens = np.cumsum(self._unFilteredLens)
     self._unFilteredNShots = np.sum(self._unFilteredLens)
     # define filter
-    self.defineFilter(isOkFilter)
+    self.defineTimeStampFilter(timeStampMatchFilter)
     self.parent   = parent
     # register detector in database
 #    if parent is not None:
@@ -98,6 +103,11 @@ class Detector(object):
   @property
   def time(self):
     return getitemWrapper(self,"time")
+
+
+  def __repr__(self):
+    s = "Detector %s, nShots %s (obj id: %s)" % (self.name,self.nShots,hex(id(self)))
+    return s
 
   def getCalibs(self,calibSlice=None,shotSlice=None,what="data",ravel=True):
     nC = self.nCalib
@@ -153,14 +163,13 @@ class Detector(object):
     dfilter = DetectorFilter(self,isOk)
     self.filter._add(name,dfilter)
     
-
-  def defineFilter(self,isOkFilter):
-    """ Define filter to use, pass None to not use any filter """
-    if isOkFilter is not None:
-      self._isOk  = np.argwhere(isOkFilter).ravel()
-      self.nShots = self._isOk.shape[0]
+  def defineTimeStampFilter(self,timeStampMatchFilter):
+    """ Define time stamp filter to use, pass None to not use any filter """
+    if timeStampMatchFilter is not None:
+      self._timeStampMatchFilter  = np.argwhere(timeStampMatchFilter).ravel()
+      self.nShots = self._timeStampMatchFilter.shape[0]
     else:
-      self._isOk  = None
+      self._timeStampMatchFilter  = None
       self.nShots = self._unFilteredNShots
 
   def chunks(self,sizeGB=0.5,n=None):
@@ -173,8 +182,8 @@ class Detector(object):
     return toolsVarious.chunk(self.nShots,n)
 
   def _applyFilterToShotSlice(self,shotSlice):
-    if self._isOk is not None:
-      shotSlice = self._isOk[shotSlice]
+    if self._timeStampMatchFilter is not None:
+      shotSlice = self._timeStampMatchFilter[shotSlice]
     return shotSlice
 
   def _shotSliceToCalibIndices(self,shotSlice):

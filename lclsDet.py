@@ -76,6 +76,15 @@ class StructuredArrayDetector(object):
       getData = functools.partial(self.getData,what=name)
       self.__dict__[name] = Detector(mne+"."+name,getData,
         self.getTimeStamp,parent=self,dtype=data.dtype)
+    self._kids = data.dtype.names
+
+  def __repr__(self):
+    s  = "StructuredArrayDetector %s\n" % self.name
+    for k in self._kids:
+      d = getattr(self,k)
+      s += "  |→ %s\n" % d.__str__()
+    return s
+
 
   @functools.lru_cache(maxsize=10000)
   def _getData(self,calib):
