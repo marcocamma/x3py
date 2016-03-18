@@ -7,21 +7,17 @@ For a more feature rich library please use https://github.com/htlemke/ixppy
 Basic usage:
 ```python
 from x3py import x3py
-d = x3py.Dataset(filename); # by default it checks the timestamp of all detectors and set filters
+d = x3py.Dataset(filenames); # by default it checks the timestamp of all detectors and set filters to have 
 d.ipm3.sum[:]; # get all shots (will be automatically cached)
 d.cspad[:20]; # first 20 shots (no caching)
 
-# event matching
-from x3py import toolsMatchTimeStamps
-
-# I know it is not very elegant. will create a nicer interface soon...
-# could a detector or a timestamp vector
-t=[d.phasec.fCharge1,d.eventCode.code_91.time[:],d.cspad,d.ipm3.sum]
-idx=toolsMatchTimeStamps.matchTimeStamps(*t)
-print("Total number of shot:",d.ipm3.sum[:].shape)
-# set filter
-d.ipm3.sum.defineFilter(idx[-1])
-
+# create filters
+xoff = x.ipm3.sum[:]<0.01
+# add a filter takes only couple of millisecond
+d.addFilter("xoff",xoff); # will define a filter for every detector
+# access filtered data
+d.cspad.filter.xoff[:10]; # take the first 10 xray off images
+# the call above might be less convenient than reading a big chunk and selecting shots afterwards depending on the way the file is written, for example if chunking and compression are used
 
 # check correlations
 def mean(img):  return img.mean(-1).mean(-1).mean(-1)
