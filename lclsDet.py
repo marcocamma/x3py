@@ -19,7 +19,7 @@ class Hdf5Detector(object):
 
   def _initialize(self):
     """ Understand where the data are ... (/image, /data, etc) """
-    test=["data","image","channelValue"]
+    test=["image","data","channelValue"]
     keys = self._getCalibPointer(0,what=None)
     for t in test:
       if t in keys:
