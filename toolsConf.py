@@ -72,6 +72,7 @@ class ConfFile(object):
     self.scanMon  = d["scanMon"]
     self.cachesizeGB = d["cachesize_GB"]
     self.readlimitGB = d["readlimit_GB"]
+    self.epics       = d["epics"]
     for k in ["datapath","cachepath"]:
       v = d[k].replace("$HOME",os.environ["HOME"])
       self.__dict__[k] = v

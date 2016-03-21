@@ -25,6 +25,12 @@ shots = np.randon.random_integers(0,d.imp3.sum.time[:].shape[0],200)
 avImg = np.asarray( [mean(d.cspad.data(i)) for i in shots] )
 mon   = d.ipm3.sum[shots]
 plt.plot(mon,avImg,"o"); # check that there are no missing shots (i.e. that x and y still correlates"
+
+# read EPICS
+d.epics.definePVs()
+d.epics.pvname
+# every PV can be transformed into an Abstractact Detector Instance
+d.epics.pvname.defineDet()
 ```
 
 If available a cython version of the eventmatching time stamp will be used (defaulting to a numpy vesion if unavailable).

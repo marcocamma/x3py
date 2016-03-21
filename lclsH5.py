@@ -7,9 +7,9 @@ import x3py.lclsDet as lclsDet
 from   x3py.toolsLog import log
 from   x3py.toolsConf import config
 from   x3py.toolsVarious import iterfy,DropObject,CodeBlock,filterList
+from   x3py import lclsSpecialDet
 
 memory = config.joblibcache
-g_epicsSignature = "Epics::EpicsPv"
 
 @memory.cache
 def visitH5(h5file):
@@ -27,7 +27,6 @@ def getSubFields(h5data,basepath="Configure:0000/Run:0000",
     h5data = h5py.File(h5filename,"r")
   else:
     h5filename = h5data.filename
-  r = re.compile(regex)
   subFolders = visitH5(h5filename)
   if basepath is not None: subFolders=filterList(subFolders,basepath,strip=False)
   if regex    is not None: subFolders=filterList(subFolders,regex,strip=strip)
@@ -70,6 +69,7 @@ class H5(object):
     self._detectorsToExclude = exclude
     self.findDetectors()
     self.findScan()
+    self.epics = lclsSpecialDet.Epics(self.h5)
     
 
   def findScan(self,conf=config):

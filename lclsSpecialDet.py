@@ -1,14 +1,69 @@
 """ Module to handle specific detectors like eventcodes, timetool, etc """
 import functools
+import collections
+import os
 import numpy as np
 import re
 
 from x3py.abstractDet import Detector
 from x3py.toolsLog import log
+from x3py.toolsConf import config
+from x3py import toolsVarious
 
+class EpicsPV(Detector):
+  def __init__(self,mne,datasets):
+    self.name = mne
+    self._datasets = datasets
+    self.nCalib = len(datasets)
+
+  def defineDet(self):
+    Detector.__init__(self,self.name,self.getData,self.getTimeStamp,nCalib=self.nCalib)
+
+  def getData(self,calib,shotSlice=None):
+    data = self._datasets[calib]["data"]["value"]
+    if shotSlice is None:
+      data = data[...]
+    else:
+      data=data[shotSlice]
+    return data
+
+  def getTimeStamp(self,calib,shotSlice=None):
+    time = self._datasets[calib]["time"]
+    if shotSlice is None:
+      time = time[...]
+    else:
+      time=time[shotSlice]
+    return time
+  
+
+class Epics(object):
+  def __init__(self,h5handles,autoDiscovery=False):
+    self.h5handles = toolsVarious.iterfy(h5handles)
+    if autoDiscovery: self.definePVs()
+    
+  def definePVs(self):
+    """ looking into the _pathlist does not work because the soft links are missing """
+    epics_str = config.epics
+    _common = "Configure:0000/Run:0000/"
+    pv_datasets = collections.defaultdict( list )
+    for h in self.h5handles:
+      pv_paths_per_handle = []
+      calibs = h[_common].keys()
+      for c in calibs:
+        epicsArchiver = h[ os.path.join(_common,c,epics_str) ].keys()
+        for e in epicsArchiver:
+          for pvname,path in h[os.path.join(_common,c,epics_str,e)].items():
+            pv_datasets[pvname].append(path)
+    self.pv_datasets = pv_datasets
+    self.pv_names    = list(pv_datasets.keys())
+    self.pv_names.sort()
+    for pv in self.pv_names:
+      mne = pv.replace(":","_").replace(".","_").replace(" ","_")
+      setattr(self,mne,EpicsPV(mne,pv_datasets[pv]))
+    return 
+        
 
 class EventCode(object):
-  ""
   def __init__(self,mne,parent,autoDiscovery=False):
     self.name = mne
     self.parent = parent
@@ -54,14 +109,21 @@ class EventCode(object):
     for c in self._foundCodes:
       v = self.getDetCode(c)[:200]
       try:
-        spacing_true  = "every %3s" % np.diff( np.argwhere(  v ).ravel() )[0] 
+        spacing_true  = np.diff( np.argwhere(  v ).ravel() )[0] 
       except IndexError:
-        spacing_true  = "Never    "
+        spacing_true  = None
       try:
-        spacing_false  = "every %3s" % np.diff( np.argwhere( ~v ).ravel() )[0] 
+        spacing_false  = np.diff( np.argwhere( ~v ).ravel() )[0] 
       except IndexError:
-        spacing_false = "Never    "
-      s += "  |→ code %3d, True %s, False %s\n" % (c,spacing_true,spacing_false)
+        spacing_false = None
+      if spacing_false is None:
+        s += "  |→ code %3d, always True\n" % c
+      elif spacing_true is None:
+        s += "  |→ code %3d, always False\n" % c
+      elif (spacing_false == 1) or (spacing_true == spacing_false):
+        s += "  |→ code %3d, True every %d\n" % (c,spacing_true)
+      elif spacing_true == 1:
+        s += "  |→ code %3d, False every %d\n" % (c,spacing_false)
     return s
 
   def _defineDetector(self,code):

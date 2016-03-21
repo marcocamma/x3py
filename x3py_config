@@ -11,7 +11,7 @@ cachepath = "$HOME/.cache/x3py"
 scan     = "ControlData*pvControls"
 scanMon  = "ControlData*pvMonit"
 
-epics    = "EpicsArch.0:NoDevice.0"
+epics    = "Epics::EpicsPv"
 
 detectors_xpp = """
   events  = EvrData::DataV4/NoDetector.0:Evr.0/present

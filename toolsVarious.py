@@ -4,6 +4,16 @@ import time
 import sys
 import re
 from   x3py.toolsLog import log
+import itertools
+
+
+### List and iterables ###
+###     START HERE     ###
+
+def mergeLists(*iterables,returnGenerator=False):
+  merged = itertools.chain(*iterables)
+  if not returnGenerator: merged=list(merged)
+  return merged
 
 def tryToSlice(v):
   """ Try to convert a list into a slice """
