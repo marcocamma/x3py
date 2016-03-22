@@ -12,6 +12,8 @@
 import functools
 import numpy as np
 import time
+import h5py
+import os
 from x3py.toolsLog import log
 from x3py import toolsVarious
 from x3py.toolsConf import config
@@ -44,10 +46,9 @@ class Detector(object):
   _timecache = None
   def __init__(self,mne,getData,getTimeStamp,timeStampMatchFilter=None,nCalib=None,
     parent=None,dtype=None):
-    self.name = mne
     self._getData = getData
     self._getTimeStamp = getTimeStamp
-    if parent is None:
+    if nCalib is not None:
       self.nCalib = nCalib
     else:
       self.nCalib = parent.nCalib
@@ -61,16 +62,43 @@ class Detector(object):
     # define filter
     self.defineTimeStampFilter(timeStampMatchFilter)
     self.parent   = parent
-    # register detector in database
-#    if parent is not None:
-#      fullname = parent.name + "." + mne
-#    else:
-#      fullname = mne
-    config.detectors[mne] = self
+
+    # baptize and register in detector database
+    if mne is None:
+      self.name = parent.name
+      if hasattr(parent,"fullname"):
+        self.fullname = parent.fullname
+      else:
+        self.fullname = self.name
+    else:
+      self.name = mne
+      if parent is not None:
+        fullname = parent.fullname if hasattr(parent,"fullname") else parent.name
+        fullname = fullname + "." + mne
+      else:
+        fullname = mne
+      self.fullname = fullname
+    if parent is not None:
+      if hasattr(parent,self.name): print("overwriting detector!!",parent,self.name)
+      setattr(parent,self.name,self)
+    config.detectors[self.fullname] = self
     self.dtype    = dtype
 
+    # what follows is for determining shapes and sizes...
+    if dtype is not None:
+      self.itemshape = dtype.shape
+      self.itemsize  = dtype.itemsize
+    else:
+      oneShot = getData(0,0)
+      self.dtype     = oneShot.dtype
+      self.itemshape = oneShot.shape
+      self.itemsize  = oneShot.nbytes
+    self._calibsizes = self.itemsize*self._unFilteredLens
+    self._datasetGB   = np.sum(self._calibsizes)/1024**3
+
+
     # try to determine internal hdf5 chunking
-    if parent is None:
+    if parent is None or self._datasetGB < config.readlimitGB:
       self._hdf5Chunks = 1
     else:
       det = self
@@ -85,18 +113,7 @@ class Detector(object):
     # filters container
     self.filter = toolsVarious.DropObject()
       
-    # what follows is for determining shapes and sizes...
-    if dtype is not None:
-      self.itemshape = dtype.shape
-      self.itemsize  = dtype.itemsize
-    else:
-      oneShot = getData(0,0)
-      self.itemshape = oneShot.shape
-      self.itemsize  = oneShot.nbytes
-    self._calibsizes = self.itemsize*self._unFilteredLens
-    self._datasetGB   = np.sum(self._calibsizes)/1024**3
 
-  @property
   def data(self):
     return getitemWrapper(self,"data")
 
@@ -162,6 +179,17 @@ class Detector(object):
   def addFilter(self,name,isOk):
     dfilter = DetectorFilter(self,isOk)
     self.filter._add(name,dfilter)
+
+  def save(self,detname="auto",fname="auto",force=True):
+    """ save in cachepath """
+    path = config.cachepath
+    if fname == "auto":
+      fname = path+"/"+os.path.basename(config.h5handles[0].filename)
+    if detname == "auto": detname = self.fullname.replace(".","/")
+    print(fname)
+    path = fname+"/"+detname
+    if not os.path.exists( path ): os.makedirs(path)
+    np.save(path+"/abstractDetector.npy",dict(data=self.data[:], time=self.time[:]))
     
   def defineTimeStampFilter(self,timeStampMatchFilter):
     """ Define time stamp filter to use, pass None to not use any filter """

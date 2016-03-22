@@ -96,13 +96,15 @@ def sliceArgToRange(sl,n):
 
 class DropObject(object):
   def __init__(self,name='noname'):
-    self._name = name
+    self.name = name
 
   def _add(self,name,data):
     setattr(self,name,data)
 
   def _keys(self):
-    return [x for x in self.__dict__.keys() if x.find("_") != 0]
+    temp = [x for x in self.__dict__.keys() if (x.find("_") != 0)]
+    temp.remove("name")
+    return temp
 
   def __repr__(self):
     return "dropObject with fields: "+str(self._keys())
@@ -125,7 +127,10 @@ def iterfy(x):
 
 def isStructuredArray(x):
   """ Returns True is the argument is a structured array """
-  return x.dtype.names is not None
+  if not hasattr(x,"dtype"):
+    return False
+  else:
+    return x.dtype.names is not None
 
 def bytesToHuman(bytes,units="auto",fmt="%.2f %s"):
   _units = dict( B = 0, KB = 1, MB = 2, GB = 3, TB = 4, PT = 5 )

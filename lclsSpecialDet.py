@@ -189,6 +189,6 @@ class TimeTool(object):
       else:
         time = h[k]["time"][shotslice]
       return time
-    d = Detector(self.name+"."+mne,getData,getTimeStamp,parent=self)
-    self.__dict__[mne] = d
-    return self.__dict__[mne]
+    d = Detector(mne,getData,getTimeStamp,parent=self)
+    setattr(self,mne,d)
+    return getattr(self,mne)

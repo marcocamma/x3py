@@ -70,11 +70,16 @@ class StructuredArrayDetector(object):
     else:
       self.parent = parent
     self.name = mne
+    if parent is None:
+      self.fullname = self.name
+    else:
+      fullname = parent.fullname if hasattr(parent,"fullname") else parent.name
+      self.fullname = fullname
     self.nCalib = self.parent.nCalib
     data = self.parent.getDataPointer(0)
     for name in data.dtype.names:
       getData = functools.partial(self.getData,what=name)
-      self.__dict__[name] = Detector(mne+"."+name,getData,
+      self.__dict__[name] = Detector(name,getData,
         self.getTimeStamp,parent=self,dtype=data.dtype)
     self._kids = data.dtype.names
 
@@ -112,8 +117,9 @@ def defineDetector(mne,calibs):
   data = det.getDataPointer(0)
   # order is important because eventCode is also a strctureArray
   if mne.find("event")>-1:
-    det = lclsSpecialDet.EventCode(mne,det)
-    print("..(as eventCode detector, use .eventCode.autoDiscovery() if needed)..",end="")
+    # autodiscovery s important for time stamp matching upon loading
+    det = lclsSpecialDet.EventCode(mne,det,autoDiscovery=True)
+    print("..(as eventCode detector)..",end="")
   elif mne.lower().find("timetool")>-1:
     det = lclsSpecialDet.TimeTool(mne,det)
     print("..(as timetool detector)..",end="")
@@ -122,7 +128,7 @@ def defineDetector(mne,calibs):
   else:
     det = Hdf5Detector(mne,calibs)
     dtype = det.getDataPointer(0).dtype
-    det = Detector(mne,det.getData,det.getTimeStamp,parent=det,dtype=dtype)
+    det = Detector(None,det.getData,det.getTimeStamp,parent=det,dtype=dtype)
     print("..(as general detector)..",end="")
   c.done()
   return det

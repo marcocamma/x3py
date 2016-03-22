@@ -1,10 +1,16 @@
 import numpy as np
 import pylab as plt
 from   x3py.toolsLog import log
-from   x3py.toolsVarious import iterfy
+from   x3py.toolsVarious import iterfy,isStructuredArray,DropObject
 from   x3py import abstractDet
 
-def wrapArray(mne,data,time):
+def wrapArray(mne,data,time=None,parent=None):
+  """ If data is a string, it is interpreted as filename of a
+      numpy file containing a dictionary with 'data' and 'time' """
+  if isinstance(data,str):
+    temp = np.load(data).item()
+    data = temp["data"]
+    time = temp["time"]
   if not isinstance(data,(list,tuple)):
     data = (data,)
     time = (time,)
@@ -19,7 +25,15 @@ def wrapArray(mne,data,time):
       return time[calib]
     else:
       return time[calib][shotSlice]
-  return abstractDet.Detector(mne,getData,getTimeStamp,nCalib=nCalib)
+  if data[0].dtype.names is not None:
+    n = parent.fullname + "." + mne
+    setattr(parent,mne,DropObject(n))
+    temp = getattr(parent,mne)
+    for name in data[0].dtype.names:
+      setattr(temp,name,wrapArray(name,[d[name] for d in data],time,parent=temp))
+    return temp
+  else:  
+    return abstractDet.Detector(mne,getData,getTimeStamp,nCalib=nCalib,parent=parent)
  
 def corrNonlinGetPar(linearDet,nonLinearDet,order=2,data_0=0,
     correct_0=0,plot=False,returnCorrectedDet=False):
@@ -66,3 +80,35 @@ def corrNonlin(nonLinearDet,polypar,data_0=0,correct_0=0):
   m = 1/np.polyval(np.polyder(polypar),data_0)
   return m*(np.polyval(polypar,nonLinearDet)-correct_0) + data_0
 
+def smoothing(x,y,err=None,k=5,s=None,newx=None,derivative_order=0):
+  # remove NaNs
+  idx = np.isfinite(x) & np.isfinite(y)
+  if idx.sum() != len(x): x=x[idx]; y=y[idx]
+
+  # if we don't need to interpolate, use same x as input
+  if newx is None: newx=x
+
+  if err is None:
+    w=None
+  elif err == "auto":
+    n=len(x)
+    imin = int(max(0,n/2-20))
+    imax = imin + 20
+    idx = range(imin,imax)
+    p = np.polyfit(x[idx],y[idx],2)
+    e = np.std( y[idx] - np.polyval(p,x[idx] ) )
+    w = np.ones_like(x)/e
+  else:
+    w=np.ones_like(x)/err
+  from scipy.interpolate import UnivariateSpline
+  if (s is not None):
+    s = len(x)*s
+  s = UnivariateSpline(x, y,w=w, k=k,s=s)
+  if (derivative_order==0):
+    return s(newx)
+  else:
+    try:
+      len(derivative_order)
+      return np.asarray([s.derivative(d)(newx) for d in derivative_order])
+    except:
+      return s.derivative(derivative_order)(newx)
