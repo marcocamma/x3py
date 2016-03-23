@@ -1,8 +1,38 @@
 import numpy as np
 import pylab as plt
+import os
 from   x3py.toolsLog import log
+from   x3py.toolsConf import config
 from   x3py.toolsVarious import iterfy,isStructuredArray,DropObject
 from   x3py import abstractDet
+
+class StructuredArrayDetector(object):
+  def __init__(self,mne,data,time,parent=None):
+    assert data.dtype.names is not None
+    self.name,self.fullname = abstractDet.baptize(mne,parent)
+    self._kids = data.dtype.names
+    self._data = data
+    self._time = time
+    for name in self._kids:
+      setattr(self,name,wrapArray(name,data[name],time,parent=self))
+    if parent is not None: setattr(parent,mne,self)
+
+  def __repr__(self):
+    s  = "StructuredArrayDetector %s\n" % self.name
+    for k in self._kids:
+      d = getattr(self,k)
+      s += "  |→ %s\n" % d.__str__()
+    return s
+
+  def save(self,detname="auto",fname="auto",force=True):
+    """ save in cachepath """
+    path = config.cachepath
+    if fname == "auto":
+      fname = path+"/"+os.path.basename(config.h5handles[0].filename)
+    if detname == "auto": detname = self.fullname.replace(".","/")
+    path = fname+"/"+detname
+    if not os.path.exists( path ): os.makedirs(path)
+    np.save(path+"/abstractDetector.npy",dict(data=self._data, time=self._time))
 
 def wrapArray(mne,data,time=None,parent=None):
   """ If data is a string, it is interpreted as filename of a
@@ -11,6 +41,8 @@ def wrapArray(mne,data,time=None,parent=None):
     temp = np.load(data).item()
     data = temp["data"]
     time = temp["time"]
+  if isStructuredArray(data):
+    return StructuredArrayDetector(mne,data,time,parent)
   if not isinstance(data,(list,tuple)):
     data = (data,)
     time = (time,)
@@ -25,15 +57,7 @@ def wrapArray(mne,data,time=None,parent=None):
       return time[calib]
     else:
       return time[calib][shotSlice]
-  if data[0].dtype.names is not None:
-    n = parent.fullname + "." + mne
-    setattr(parent,mne,DropObject(n))
-    temp = getattr(parent,mne)
-    for name in data[0].dtype.names:
-      setattr(temp,name,wrapArray(name,[d[name] for d in data],time,parent=temp))
-    return temp
-  else:  
-    return abstractDet.Detector(mne,getData,getTimeStamp,nCalib=nCalib,parent=parent)
+  return abstractDet.Detector(mne,getData,getTimeStamp,nCalib=nCalib,parent=parent)
  
 def corrNonlinGetPar(linearDet,nonLinearDet,order=2,data_0=0,
     correct_0=0,plot=False,returnCorrectedDet=False):

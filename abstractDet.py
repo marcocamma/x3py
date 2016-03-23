@@ -18,6 +18,24 @@ from x3py.toolsLog import log
 from x3py import toolsVarious
 from x3py.toolsConf import config
 
+def baptize(mne,parent=None):
+  # can't be both None
+  assert not ( (mne is None) and (parent is None)  )
+  if mne is None:
+    name = parent.name
+    if hasattr(parent,"fullname"):
+      fullname = parent.fullname
+    else:
+      fullname = name
+  else:
+    name = mne
+    if parent is not None:
+      fullname = parent.fullname if hasattr(parent,"fullname") else parent.name
+      fullname = fullname + "." + mne
+    else:
+      fullname = mne
+  return name,fullname
+
 class DetectorFilter(object):
   """ use as storage for filtering on top of the timestampfilter (if defined) """
   def __init__(self,det,boolIdx):
@@ -64,20 +82,7 @@ class Detector(object):
     self.parent   = parent
 
     # baptize and register in detector database
-    if mne is None:
-      self.name = parent.name
-      if hasattr(parent,"fullname"):
-        self.fullname = parent.fullname
-      else:
-        self.fullname = self.name
-    else:
-      self.name = mne
-      if parent is not None:
-        fullname = parent.fullname if hasattr(parent,"fullname") else parent.name
-        fullname = fullname + "." + mne
-      else:
-        fullname = mne
-      self.fullname = fullname
+    self.name,self.fullname = baptize(mne,parent)
     if parent is not None:
       if hasattr(parent,self.name): print("overwriting detector!!",parent,self.name)
       setattr(parent,self.name,self)
@@ -113,7 +118,7 @@ class Detector(object):
     # filters container
     self.filter = toolsVarious.DropObject()
       
-
+  @property
   def data(self):
     return getitemWrapper(self,"data")
 
@@ -123,7 +128,7 @@ class Detector(object):
 
 
   def __repr__(self):
-    s = "Detector %s, nShots %s (obj id: %s)" % (self.name,self.nShots,hex(id(self)))
+    s = "Detector %s, nShots %s, non-timestamp-filtered nShots %s (obj id: %s)" % (self.name,self.nShots,self._unFilteredNShots,hex(id(self)))
     return s
 
   def getCalibs(self,calibSlice=None,shotSlice=None,what="data",ravel=True):

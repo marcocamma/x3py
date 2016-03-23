@@ -143,14 +143,14 @@ class TimeTool(object):
     self.name = mne
     self.parent = parent
     self._regex = dict (
-      ampl = ":AMPL$",
+      amp  = ":AMPL$",
       pos  = ":FLTPOS$",
       fwhm = ":FLTPOSFWHM$"
     )
     dets = self._regex.keys()
     calibs = dict( [ (det,self._getCalibForSubField(det)) for det in dets ] )
     self._calibs = calibs
-    self.nCalib = len(calibs["ampl"])
+    self.nCalib = len(calibs["amp"])
     for det in dets:
       try:
         self._defineDetector(det,calibs[det])
@@ -160,12 +160,14 @@ class TimeTool(object):
 
   def __repr__(self):
     s  = "lclsSpecialDet.TimeTool (obj id %s)\n" % (hex(id(self)))
-    for k in self._regex.keys():
+    kids = list(self._regex.keys())
+    kids.sort()
+    for k in kids:
       d = getattr(self,k)
       s += "  |→ %s\n" % d.__str__()
     return s
 
-  def _getCalibForSubField(self,what="ampl"):
+  def _getCalibForSubField(self,what="amp"):
     calibs = self.parent.calibs
     regex  = self._regex[what]
     r = re.compile(regex)

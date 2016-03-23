@@ -68,7 +68,14 @@ class H5(object):
     self._detectorsToLookFor = detectors
     self._detectorsToExclude = exclude
     self.findDetectors()
-    self.findScan()
+    try:
+      self.findScan()
+    # at least for xppa1714-r0107.h5, this is the error given when trying to open:
+    #  e = h5[0]["Configure:0000/Run:0000/CalibCycle:0000/ControlData::ConfigV3/Control/pvControls"]
+    # e[...]
+    # *** OSError: Can't read data (Src and dest data spaces have different sizes)
+    except OSError:
+      log.warn("No scan variable could be found")
     self.epics = lclsSpecialDet.Epics(self.h5)
     
 
