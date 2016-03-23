@@ -162,8 +162,6 @@ class Detector(object):
         if self._datacache is None:
           self._datacache = self.getCalibs(what="data",ravel=True)
         ret = self._datacache[shotSlice]
-      elif self.nCalib == 1:
-        ret = self._getData(0,shotSlice)
       else:
         args,nShotsToRead = self._shotSliceToCalibIndices(shotSlice)
         # check read limit
