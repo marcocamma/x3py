@@ -40,6 +40,7 @@ detectors_xpp = """
   opal0    = Camera::Frame*/XppEndstation.0:Opal1000.0
   opal1    = Camera::Frame*/XppEndstation.0:Opal1000.1
   opal2    = Camera::Frame*/XppEndstation.0:Opal1000.2
+  orca     = Camera::Frame*/XppEndstation.0:OrcaFl40.0
   rayonix  = Camera::Frame*/XppSb1Pim.0:Rayonix.0
 """
 
