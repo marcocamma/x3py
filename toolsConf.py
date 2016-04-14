@@ -92,10 +92,10 @@ class ConfFile(object):
         OR
         x3py.config.updateBeamline("xpp") 
     """
-    if beamline is None: beamline = self.beamline
+    if beamline is not None: self.beamline = beamline
     d = self.fileDict
     d_common   = _parseDetectorStr(d["detectors_common"])
-    d_beamline = _parseDetectorStr(d["detectors_" + beamline])
+    d_beamline = _parseDetectorStr(d["detectors_" + self.beamline])
     self.detectorsToMatch = d_common
     self.detectorsToMatch.update(d_beamline)
 
