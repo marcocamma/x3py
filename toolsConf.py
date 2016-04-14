@@ -80,10 +80,25 @@ class ConfFile(object):
     self.joblibcache = Memory(cachedir=self.cachepath, verbose=0,compress=True)
     print("Using %s as cache folder, current size %s" % \
       (self.cachepath,toolsOS.du(self.cachepath)))
-    d_beamline = _parseDetectorStr(d["detectors_common"])
-    d_common   = _parseDetectorStr(d["detectors_" + self.beamline])
-    self.detectorsToMatch = d_beamline
-    self.detectorsToMatch.update(d_common)
+    d_common   = _parseDetectorStr(d["detectors_common"])
+    d_beamline = _parseDetectorStr(d["detectors_" + self.beamline])
+    self.detectorsToMatch = d_common
+    self.detectorsToMatch.update(d_beamline)
+
+  def updateBeamline(self,beamline=None):
+    """ useful to dynamically set the beamline to work with:
+        x3py.config.beamline="xpp"
+        x3py.config.updateBeamline() 
+        OR
+        x3py.config.updateBeamline("xpp") 
+    """
+    if beamline is None: beamline = self.beamline
+    d = self.fileDict
+    d_common   = _parseDetectorStr(d["detectors_common"])
+    d_beamline = _parseDetectorStr(d["detectors_" + beamline])
+    self.detectorsToMatch = d_common
+    self.detectorsToMatch.update(d_beamline)
+
 
 path = os.path.split(__file__)[0]
 
