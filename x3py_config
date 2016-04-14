@@ -45,9 +45,9 @@ detectors_xpp = """
 """
 
 detectors_xcs = """
-  opal1    = Camera::Frame*/XcsEndstation.0:Opal1000.1
-  opal2    = Camera::Frame*/XcsEndstation.0:Opal1000.2
-  opal3    = Camera::Frame*/XcsEndstation.0:Opal1000.3
+  opal1    = Camera::Frame*/XcsEndstation.1:Opal1000.1
+  opal2    = Camera::Frame*/XcsEndstation.1:Opal1000.2
+  opal3    = Camera::Frame*/XcsEndstation.1:Opal1000.3
 """
 
 
