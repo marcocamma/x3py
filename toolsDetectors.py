@@ -41,6 +41,7 @@ def wrapArray(mne,data,time=None,parent=None):
     temp = np.load(data).item()
     data = temp["data"]
     time = temp["time"]
+  if time is None and parent is not None: time=parent.time[:]
   if isStructuredArray(data):
     return StructuredArrayDetector(mne,data,time,parent)
   if not isinstance(data,(list,tuple)):

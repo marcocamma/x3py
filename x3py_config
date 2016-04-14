@@ -44,6 +44,29 @@ detectors_xpp = """
   rayonix  = Camera::Frame*/XppSb1Pim.0:Rayonix.0
 """
 
+detectors_xcs = """
+  opal1    = Camera::Frame*/XcsEndstation.0:Opal1000.1
+  opal2    = Camera::Frame*/XcsEndstation.0:Opal1000.2
+  opal3    = Camera::Frame*/XcsEndstation.0:Opal1000.3
+"""
+
+
+detectors_mec = """
+  events    = EvrData::DataV4/NoDetector.0:Evr.0/present
+  eventCode = EvrData
+  ipm1    = IpmFexV*/MEC-HXM-IPM-01
+  ipm2    = IpmFexV*/MEC-XT2-IPM-02
+  ipm3    = IpmFexV*/MEC-XT2-IPM-03
+  laserdiode  = IpmFexV*/MEC-LAS-EM-01
+  princeton1  = Princeton::Frame*/MecTargetChamber.0:Princeton.1
+  princeton2  = Princeton::Frame*/MecTargetChamber.0:Princeton.2
+  princeton3  = Princeton::Frame*/MecTargetChamber.0:Princeton.3
+  princeton4  = Princeton::Frame*/MecTargetChamber.0:Princeton.4
+  princeton5  = Princeton::Frame*/MecTargetChamber.0:Princeton.5
+  princeton6  = Princeton::Frame*/MecTargetChamber.0:Princeton.6
+  princeton7  = Princeton::Frame*/MecTargetChamber.0:Princeton.7
+"""
+
 # Common detectors
 detectors_common = """
   phasec = BldDataPhaseCavity/PhaseCavity

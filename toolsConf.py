@@ -89,7 +89,7 @@ path = os.path.split(__file__)[0]
 
 file_default = path + "/x3py_config"
 file_home    = os.environ["HOME"] + "./.x3py.rc"
-file_cwd     = os.path.curdir     + "./x3py_config"
+file_cwd     = os.path.join(os.path.curdir,"x3py_config")
 files = [file_default,file_home,file_cwd]
 files = [f for f in files if os.path.exists(f)]
 config = ConfFile(files) 
