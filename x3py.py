@@ -37,7 +37,9 @@ class Dataset(x3py.lclsH5.H5):
       for d in dets[:-2]:
         if not hasattr(start,d): setattr(start,d,toolsVarious.DropObject())
         start = getattr(start,d)
-      setattr(start,dets[-2],toolsDetectors.wrapArray(dets[-2],f,parent=start))
+      parent = start if start != self else None
+      det = toolsDetectors.wrapArray(dets[-2],f,parent=parent)
+      setattr(start,dets[-2],det)
 
   def _matchTimeStampsTOFINISH(self,detectorList=None):
     # TODO: to be done: find kids and apply filter
@@ -93,5 +95,6 @@ class Dataset(x3py.lclsH5.H5):
     c.done()
 
   def addFilter(self,name,boolIdx,detectors=None):
+    """ Add the filter defined by boolIdx to all detectors """
     if detectors is None: detectors=self.detectors
     for d in detectors.values(): d.addFilter(name,boolIdx)

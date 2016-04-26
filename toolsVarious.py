@@ -17,14 +17,19 @@ def mergeLists(*iterables,returnGenerator=False):
 
 def tryToSlice(v):
   """ Try to convert a list into a slice """
-  m,M=min(v),max(v)
-  if len(v)>1:
-    step = (M-m)//(len(v)-1)
-  else:
-    step = 1
-  # check if anything is missing
-  if (M-m)/(len(v)-1) == float(step):
-    return slice(m,M+1,step)
+  if isinstance(v,int):
+    return v
+  elif isinstance(v,(list,tuple)):
+    m,M=min(v),max(v)
+    if len(v)>1:
+      step = (M-m)//(len(v)-1)
+      # check if anything is missing
+      if (M-m)/(len(v)-1) == float(step):
+        return slice(m,M+1,step)
+      else:
+        return v
+    else:
+      return v
   else:
     return v
 
