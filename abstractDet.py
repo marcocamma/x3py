@@ -187,12 +187,13 @@ class Detector(object):
     """ save in cachepath """
     path = config.cachepath
     if fname == "auto":
-      fname = path+"/"+os.path.basename(config.h5handles[0].filename)
+      path = os.path.join(path,os.path.basename(config.h5handles[0].filename))
     if detname == "auto": detname = self.fullname.replace(".","/")
-    print(fname)
-    path = fname+"/"+detname
+    path = os.path.join(path,detname)
     if not os.path.exists( path ): os.makedirs(path)
-    np.save(path+"/abstractDetector.npy",dict(data=self.data[:], time=self.time[:]))
+    fname = os.path.join(path,"abstractDetector.npy")
+    if force or (not os.path.exists(fname)):
+      np.save(fname,dict(data=self.data[:], time=self.time[:]))
     
   def defineTimeStampFilter(self,timeStampMatchFilter):
     """ Define time stamp filter to use, pass None to not use any filter """

@@ -25,6 +25,18 @@ class Dataset(x3py.lclsH5.H5):
     if load_cache: self.loadCache()
     if matchTimeStamps: self._matchTimeStamps()
 
+  # methods for making the Dataset iterables
+  def __iter__(self):
+    self._itercount = -1
+    self._iteritems = list(self.detectors.keys())
+    return self
+  def __next__(self):
+    self._itercount+=1
+    if self._itercount < len(self._iteritems):
+      return self._iteritems[self._itercount]
+    else:
+      raise StopIteration
+
   def loadCache(self,path=None):
     if path is None: path= os.path.join(config.cachepath,os.path.basename(self.h5[0].filename))
     # find files
