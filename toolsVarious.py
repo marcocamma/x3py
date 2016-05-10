@@ -101,14 +101,14 @@ def sliceArgToRange(sl,n):
 
 class DropObject(object):
   def __init__(self,name='noname'):
-    self.name = name
+    self._name = name
 
   def _add(self,name,data):
     setattr(self,name,data)
 
   def _keys(self):
     temp = [x for x in self.__dict__.keys() if (x.find("_") != 0)]
-    temp.remove("name")
+#    temp.remove("_name")
     return temp
 
   def __repr__(self):
