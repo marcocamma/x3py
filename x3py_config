@@ -57,6 +57,11 @@ detectors_mec = """
   ipm1    = IpmFexV*/MEC-HXM-IPM-01
   ipm2    = IpmFexV*/MEC-XT2-IPM-02
   ipm3    = IpmFexV*/MEC-XT2-IPM-03
+  cspad   = CsPad::Element*/MecTargetChamber.0:Cspad.0
+  cspad2x2_1 = CsPad2x2::Element*/MecTargetChamber.0:Cspad2x2.1
+  cspad2x2_2 = CsPad2x2::Element*/MecTargetChamber.0:Cspad2x2.2
+  cspad2x2_3 = CsPad2x2::Element*/MecTargetChamber.0:Cspad2x2.3
+  cspad2x2_4 = CsPad2x2::Element*/MecTargetChamber.0:Cspad2x2.4
   laserdiode  = IpmFexV*/MEC-LAS-EM-01
   princeton1  = Princeton::Frame*/MecTargetChamber.0:Princeton.1
   princeton2  = Princeton::Frame*/MecTargetChamber.0:Princeton.2
@@ -65,10 +70,14 @@ detectors_mec = """
   princeton5  = Princeton::Frame*/MecTargetChamber.0:Princeton.5
   princeton6  = Princeton::Frame*/MecTargetChamber.0:Princeton.6
   princeton7  = Princeton::Frame*/MecTargetChamber.0:Princeton.7
+  opal1    = Camera::Frame*/MecTargetChamber.0:Opal1000.1
+  opal2    = Camera::Frame*/MecTargetChamber.0:Opal1000.2
+  opal3    = Camera::Frame*/MecTargetChamber.0:Opal1000.3
 """
 
 # Common detectors
 detectors_common = """
+  fee_spec = Camera::Frame*/XrayTransportDiagnostic.0:OrcaFl40.0
   phasec = BldDataPhaseCavity/PhaseCavity
   ebeam  = BldDataEBeam*/EBeam
   gasdet = GasDetEnergy/FEEGasDetEnergy
