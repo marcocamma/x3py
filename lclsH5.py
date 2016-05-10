@@ -88,7 +88,9 @@ class H5(object):
     self.__dict__["scan"] = DropObject()
     for i in range(n.shape[1]):
       name = n[0,i].decode()
-      self.__dict__["scan"]._add(name,v[:,i])
+      setattr(self.scan,name,v[:,i])
+      setattr(self.scan,"scanmotor%d"%i,name)
+      setattr(self.scan,"scanmotor%d_values"%i,v[:,i])
 
   def findDetectors(self,conf=config):
     dets = self._detectorsToLookFor
