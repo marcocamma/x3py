@@ -128,10 +128,14 @@ class Detector(object):
 
 
   def __repr__(self):
-    s = "Detector %s, nShots %s, non-timestamp-filtered nShots %s (obj id: %s)" % (self.name,self.nShots,self._unFilteredNShots,hex(id(self)))
+    n = self.nShots
+    ntot = self._unFilteredNShots
+    s = "Detector %s, nShots %s (+ %d timestamp-filtered) (obj id: %s)" % \
+        (self.name,n,ntot-n,hex(id(self)))
     return s
 
-  def getCalibs(self,calibSlice=None,shotSlice=None,what="data",ravel=True):
+  def _getCalibs(self,calibSlice=None,shotSlice=None,what="data",ravel=True):
+    """ Attention !! this method does not take into account time-stamp filtering !! """
     nC = self.nCalib
     getD = self._getData
     getT = self._getTimeStamp
@@ -146,21 +150,22 @@ class Detector(object):
       time = _interpretSlices(getT,slices,nC,ravel,itemshape)
       return data,time
 
-  def getShots(self,shotSlice,what="data"):
+  def getShots(self,shotSlice,calib=None,what="data"):
     """ this function returns the shots independently of the calibcycle. In 
         other words if the first calibcycle has 100 shots, the shot 101 will
         be the first one of the second calibcycle;
         The idea behind such kind of access is data storage independent of
-        calibcycles """
-    shotSlice = self._applyFilterToShotSlice(shotSlice)
+        calibcycles; if shots from a particular calib cycles are needed, the 
+        calib keyword can be used."""
+    shotSlice = self._applyFilterToShotSlice(shotSlice,calib=calib)
     if what == "time":
       if self._timecache is None:
-        self._timecache = self.getCalibs(what="time",ravel=True)
+        self._timecache = self._getCalibs(what="time",ravel=True)
       ret = self._timecache[shotSlice]
     else:
       if self._datasetGB < config.cachesizeGB:
         if self._datacache is None:
-          self._datacache = self.getCalibs(what="data",ravel=True)
+          self._datacache = self._getCalibs(what="data",ravel=True)
         ret = self._datacache[shotSlice]
       else:
         args,nShotsToRead = self._shotSliceToCalibIndices(shotSlice)
@@ -172,7 +177,7 @@ class Detector(object):
                  config.readlimitGB
           msg += " in the configuration file if you are sure"
           raise ValueError(msg)
-        data = [self.getCalibs(*a,what=what,ravel=True) for a in args]
+        data = [self._getCalibs(*a,what=what,ravel=True) for a in args]
         if len(data) == 1:
           ret = data[0]
         else:
@@ -213,10 +218,25 @@ class Detector(object):
       n = (n // self._hdf5Chunks) * self._hdf5Chunks
     return toolsVarious.chunk(self.nShots,n)
 
-  def _applyFilterToShotSlice(self,shotSlice):
-    if self._timeStampMatchFilter is not None:
-      shotSlice = self._timeStampMatchFilter[shotSlice]
-    return shotSlice
+  def _applyFilterToShotSlice(self,shotSlice,calib=None):
+    if calib is None:
+      if (self._timeStampMatchFilter is None):
+        ret = shotSlice
+      else:
+        ret = self._timeStampMatchFilter[shotSlice]
+    elif calib<self.nCalib:
+      first = self._unFilteredCumLens[calib-1] if calib>0 else 0
+      last  = self._unFilteredCumLens[calib]
+      if (self._timeStampMatchFilter is None):
+        ret = np.arange(first,last)[shotSlice]
+      else:
+        idx = (self._timeStampMatchFilter >= first) & \
+              (self._timeStampMatchFilter <= last )
+        ret = self._timeStampMatchFilter[idx][shotSlice]
+    else:
+      log.warn("Detector has only %d calibcycles ! you asked for %d",self.nCalib,calib)
+      ret = None
+    return ret
 
   def _shotSliceToCalibIndices(self,shotSlice):
     """ helper function to 'partition' shotSlice into calibcycles; 
