@@ -20,10 +20,13 @@ class Dataset(x3py.lclsH5.H5):
     ):
     x3py.lclsH5.H5.__init__(self,inputFilesOrExpRunTuple,detectors=detectors,\
     exclude=exclude_dets)
-    self.detectors = config.detectors
     setattr(config,"h5handles",self.h5); # useful for getting this info in other classes
     if load_cache: self.loadCache()
     if matchTimeStamps: self._matchTimeStamps()
+
+  @property
+  def detectors(self):
+    return toolsDetectors.findDetectorsInsideObj(self)
 
   # methods for making the Dataset iterables
   def __iter__(self):
@@ -51,7 +54,8 @@ class Dataset(x3py.lclsH5.H5):
         start = getattr(start,d)
       parent = start if start != self else None
       det = toolsDetectors.wrapArray(dets[-2],f,parent=parent)
-      setattr(start,dets[-2],det)
+      self.detectors[dets[-1]]=det
+      #setattr(start,dets[-2],det); done by wraparray
 
   def _matchTimeStampsTOFINISH(self,detectorList=None):
     # TODO: to be done: find kids and apply filter
@@ -73,25 +77,6 @@ class Dataset(x3py.lclsH5.H5):
 
   def get(self,x): return eval('self.%s' % x)
 
-  def save(self,det,detname="auto",fname="auto"):
-    """ save in cachepath """
-    if isinstance(det,str): det = self.get(det)
-    path = config.cachepath
-    if fname == "auto": fname = path+"/"+os.path.basename(self.h5[0].filename)
-    h=h5py.File(fname,"a")
-    if detname == "auto":
-      names = [n for (n,d) in config.detectors.items() if d == det]
-      if len(names) == 0:
-        log.warn("Asked to save detector %s but it could not be found in the database",det)
-      elif len(names)>1:
-        log.warn("Asked to save detector %s but it has multiple names, using the first %s",det,names[0])
-        detname = names[0]
-      else:
-        detname = names[0]
-    h[detname+"/data"] = det.data[:]
-    h[detname+"/time"] = det.time[:]
-    h.close()
-      
   def _matchTimeStamps(self,detectorList=None):
     c=toolsVarious.CodeBlock("Time stamp matching started ...")
     if detectorList is None:

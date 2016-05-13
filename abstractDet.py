@@ -86,7 +86,7 @@ class Detector(object):
     if parent is not None:
       if hasattr(parent,self.name): print("overwriting detector!!",parent,self.name)
       setattr(parent,self.name,self)
-    config.detectors[self.fullname] = self
+    #config.detectors[self.fullname] = self
     self.dtype    = dtype
 
     # what follows is for determining shapes and sizes...

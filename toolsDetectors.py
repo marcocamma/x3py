@@ -59,6 +59,19 @@ def wrapArray(mne,data,time=None,parent=None):
     else:
       return time[calib][shotSlice]
   return abstractDet.Detector(mne,getData,getTimeStamp,nCalib=nCalib,parent=parent)
+
+def findDetectorsInsideObj(obj):
+  """recursively find detectors """
+  # find kids
+  if not hasattr(obj,"__dict__"): return []
+  kids = obj.__dict__.values()
+  dets = {}
+  for k in kids:
+    if isinstance(k,abstractDet.Detector):
+      dets[k.fullname]=k
+    else:
+      dets.update( findDetectorsInsideObj(k) )
+  return dets
  
 def corrNonlinGetPar(linearDet,nonLinearDet,order=2,data_0=0,
     correct_0=0,plot=False,returnCorrectedDet=False):
