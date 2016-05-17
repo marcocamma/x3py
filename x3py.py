@@ -44,17 +44,18 @@ class Dataset(x3py.lclsH5.H5):
     if path is None: path= os.path.join(config.cachepath,os.path.basename(self.h5[0].filename))
     # find files
     files = toolsOS.getCMD("find %s -name abstractDetector.npy"%path)
+    files.sort( key=len ); # to have child (like .profile.timeTool) after .profile
     relfiles = [os.path.relpath(f,path) for f in files]
     for f,relf in zip(files,relfiles):
       dets = relf.split(os.path.sep)
       # make sure intermediate layers are available
       start = self
       for d in dets[:-2]:
-        if not hasattr(start,d): setattr(start,d,toolsVarious.DropObject())
+        if not hasattr(start,d): setattr(start,d,toolsVarious.DropObject(name=d))
         start = getattr(start,d)
       parent = start if start != self else None
-      det = toolsDetectors.wrapArray(dets[-2],f,parent=parent)
-      self.detectors[dets[-1]]=det
+      toolsDetectors.wrapArray(dets[-2],f,parent=parent)
+      #self.detectors[dets[-1]]=det
       #setattr(start,dets[-2],det); done by wraparray
 
   def _matchTimeStampsTOFINISH(self,detectorList=None):
