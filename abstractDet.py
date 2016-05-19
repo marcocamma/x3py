@@ -30,8 +30,14 @@ def baptize(mne,parent=None):
   else:
     name = mne
     if parent is not None:
-      fullname = parent.fullname if hasattr(parent,"fullname") else parent.name
-      fullname = fullname + "." + mne
+      if hasattr(parent,"fullname"):
+        fullname = parent.fullname + "." + mne
+      elif hasattr(parent,"name"):
+        fullname = parent.name + "." + mne
+      elif hasattr(parent,"_name"):
+        fullname = parent._name + "." + mne
+      else:
+        fullname = mne
     else:
       fullname = mne
   return name,fullname
@@ -188,7 +194,7 @@ class Detector(object):
     dfilter = DetectorFilter(self,isOk)
     self.filter._add(name,dfilter)
 
-  def save(self,detname="auto",fname="auto",force=True):
+  def save(self,detname="auto",fname="auto",force=True,dtype=None):
     """ save in cachepath """
     path = config.cachepath
     if fname == "auto":
@@ -198,16 +204,19 @@ class Detector(object):
     if not os.path.exists( path ): os.makedirs(path)
     fname = os.path.join(path,"abstractDetector.npy")
     if force or (not os.path.exists(fname)):
-      np.save(fname,dict(data=self.data[:], time=self.time[:]))
+      data_tosave = self.data[:].astype(dtype) if dtype is not None else self.data[:]
+      np.save(fname,dict(data=data_tosave, time=self.time[:]))
     
   def defineTimeStampFilter(self,timeStampMatchFilter):
     """ Define time stamp filter to use, pass None to not use any filter """
     if timeStampMatchFilter is not None:
       self._timeStampMatchFilter  = np.argwhere(timeStampMatchFilter).ravel()
       self.nShots = self._timeStampMatchFilter.shape[0]
+      self.lens   = np.asarray( [self.getShots(slice(self.nShots),calib=c,what="time").shape[0] for c in range(self.nCalib)] )
     else:
       self._timeStampMatchFilter  = None
       self.nShots = self._unFilteredNShots
+      self.lens   = self._unFilteredLens
 
   def chunks(self,sizeGB=0.5,n=None):
     if n is None:
@@ -226,7 +235,7 @@ class Detector(object):
         ret = self._timeStampMatchFilter[shotSlice]
     elif calib<self.nCalib:
       first = self._unFilteredCumLens[calib-1] if calib>0 else 0
-      last  = self._unFilteredCumLens[calib]
+      last  = self._unFilteredCumLens[calib]-1
       if (self._timeStampMatchFilter is None):
         ret = np.arange(first,last)[shotSlice]
       else:

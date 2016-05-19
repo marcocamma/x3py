@@ -81,10 +81,6 @@ def corrNonlinGetPar(linearDet,nonLinearDet,order=2,data_0=0,
     *data_0" is an offset to use for the data (used only if plotting)"
     *correct_0* offset of the "linear detector"""
   p =  np.polyfit(nonLinearDet,linearDet,order)
-  if order>=2 and p[-3]<0:
-    log("corrNonlinGetPar: consistency problem, second order coefficient should \
-    be > 0, please double check result (plot=True) or try inverting the data and the\
-    correct arguments")
   p[-1] = p[-1]-correct_0
   if plot:
     d = corrNonlin(nonLinearDet,p,data_0=data_0,correct_0=correct_0)
@@ -99,6 +95,11 @@ def corrNonlinGetPar(linearDet,nonLinearDet,order=2,data_0=0,
     plt.xlabel("linearDet")
     plt.ylabel("nonLinearDet")
     plt.legend()
+  if order>=2 and p[-3]<0:
+    log("corrNonlinGetPar: consistency problem, second order coefficient should \
+    be > 0, please double check result (plot=True) or try inverting the data and the\
+    correct arguments")
+
   if returnCorrectedDet:
     return corrNonlin(nonLinearDet,p,data_0=data_0,correct_0=correct_0)
   else:
@@ -150,3 +151,6 @@ def smoothing(x,y,err=None,k=5,s=None,newx=None,derivative_order=0):
       return np.asarray([s.derivative(d)(newx) for d in derivative_order])
     except:
       return s.derivative(derivative_order)(newx)
+
+def filterMinMax(values,min,max):
+  return (values>=min) & (values<=max)

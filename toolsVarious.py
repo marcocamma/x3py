@@ -7,6 +7,9 @@ from   x3py.toolsLog import log
 import itertools
 
 
+def expandScan(scan,lens):
+  return np.concatenate( [(p,)*l for (p,l) in zip(scan,lens)] ) 
+
 ### List and iterables ###
 ###     START HERE     ###
 
@@ -101,13 +104,13 @@ def sliceArgToRange(sl,n):
 
 class DropObject(object):
   def __init__(self,name='noname'):
-    self.name = name
+    self._name = name
 
   def _add(self,name,data):
     setattr(self,name,data)
 
   def _keys(self):
-    temp = [x for x in self.__dict__.keys() if ((x.find("_") != 0) and (x!="name"))]
+    temp = [x for x in self.__dict__.keys() if ((x.find("_") != 0) and (x!="_name"))]
 #    temp.remove("_name")
     return temp
 
