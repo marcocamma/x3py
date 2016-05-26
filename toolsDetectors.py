@@ -5,6 +5,7 @@ from   x3py.toolsLog import log
 from   x3py.toolsConf import config
 from   x3py.toolsVarious import iterfy,isStructuredArray,DropObject
 from   x3py import abstractDet
+from   x3py.toolsMatchTimeStamps import matchTimeStamps
 
 class StructuredArrayDetector(object):
   def __init__(self,mne,data,time,parent=None):
@@ -59,6 +60,22 @@ def wrapArray(mne,data,time=None,parent=None):
     else:
       return time[calib][shotSlice]
   return abstractDet.Detector(mne,getData,getTimeStamp,nCalib=nCalib,parent=parent)
+
+def splitInCalibCycles(det,ref=None):
+  """ split a detector into multiple calibcycles based on timestamps obtained from ref;
+      if ref is None det.parent is used """
+  if ref is None: ref=det.parent
+  time = det.time[:]
+  time_calibs = [ref.getShots( slice(0,ref.lens[i]),calib=i,what="time") for i in range(ref.nCalib) ]
+  idx = [ matchTimeStamps(time,time_calib)[0] for time_calib in time_calibs]
+  def getData(calib,shotSlice=None):
+    i = idx[calib][shotSlice] if shotSlice is not None else idx[calib]
+    return det.getShots(i)
+  def getTimeStamp(calib,shotSlice=None):
+    i = idx[calib][shotSlice] if shotSlice is not None else idx[calib]
+    return det.getShots(i,what="time")
+  return abstractDet.Detector(det.name,getData,getTimeStamp,nCalib=ref.nCalib,parent=det.parent)
+
 
 def findDetectorsInsideObj(obj):
   """recursively find detectors """
