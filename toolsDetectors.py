@@ -1,11 +1,11 @@
 import numpy as np
 import pylab as plt
 import os
-from   x3py.toolsLog import log
-from   x3py.toolsConf import config
-from   x3py.toolsVarious import iterfy,isStructuredArray,DropObject
-from   x3py import abstractDet
-from   x3py.toolsMatchTimeStamps import matchTimeStamps
+from  .toolsLog import log
+from  .toolsConf import config
+from  .toolsVarious import iterfy,isStructuredArray,DropObject
+from  . import abstractDet
+from  .toolsMatchTimeStamps import matchTimeStamps
 
 class StructuredArrayDetector(object):
   def __init__(self,mne,data,time,parent=None):

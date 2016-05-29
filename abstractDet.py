@@ -14,9 +14,9 @@ import numpy as np
 import time
 import h5py
 import os
-from x3py.toolsLog import log
-from x3py import toolsVarious
-from x3py.toolsConf import config
+from .toolsLog import log
+from . import toolsVarious
+from .toolsConf import config
 
 def baptize(mne,parent=None):
   # can't be both None

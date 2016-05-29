@@ -1,8 +1,8 @@
 import os
 import numpy as np
 import functools
-from x3py.toolsVarious import iterfy
-from x3py import toolsOS
+from .toolsVarious import iterfy
+from . import toolsOS
 from joblib import Memory
 
 

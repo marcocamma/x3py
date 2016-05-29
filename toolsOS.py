@@ -1,6 +1,6 @@
 import os
 import psutil
-from x3py import toolsVarious
+from . import toolsVarious
 
 def getCMD(cmd,strip=True):
   shell = os.popen(cmd)

@@ -3,7 +3,7 @@ import numpy as np
 import time
 import sys
 import re
-from   x3py.toolsLog import log
+from   .toolsLog import log
 import itertools
 
 

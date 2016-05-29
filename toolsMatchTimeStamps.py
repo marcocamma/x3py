@@ -1,6 +1,6 @@
 import collections
 import numpy as np
-from   x3py.toolsLog import log
+from   .toolsLog import log
 
 try:
   import x3py.matchTimeStamps

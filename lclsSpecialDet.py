@@ -5,10 +5,10 @@ import os
 import numpy as np
 import re
 
-from x3py.abstractDet import Detector
-from x3py.toolsLog import log
-from x3py.toolsConf import config
-from x3py import toolsVarious
+from .abstractDet import Detector
+from .toolsLog import log
+from .toolsConf import config
+from . import toolsVarious
 
 class EpicsPV(Detector):
   def __init__(self,mne,datasets):

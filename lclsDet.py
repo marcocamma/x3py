@@ -5,9 +5,9 @@ import functools
 import numpy as np
 import time
 
-import x3py.lclsSpecialDet as lclsSpecialDet
-import x3py.toolsVarious   as toolsVarious
-from   x3py.abstractDet    import Detector
+from . import lclsSpecialDet
+from . import toolsVarious
+from   .abstractDet    import Detector
 
 class Hdf5Detector(object):
   def __init__(self,mne,calibs,time_field="/time"):

@@ -1,15 +1,15 @@
 """ This is a light version of the x3py package. Can simply acess the
    data """
+import glob
 import os
 import numpy as np
 
-from x3py.toolsConf import config
-from x3py import toolsMatchTimeStamps,toolsVarious,toolsOS,toolsDetectors
-import h5py
-import x3py.lclsH5
-import x3py.abstractDet
+from .toolsConf import config
+from . import toolsMatchTimeStamps,toolsVarious,toolsOS,toolsDetectors
+from . import lclsH5
+from . import abstractDet
 
-class Dataset(x3py.lclsH5.H5):
+class Dataset(lclsH5.H5):
   config = config
   def __init__(self,
     inputFilesOrExpRunTuple='',
@@ -18,7 +18,7 @@ class Dataset(x3py.lclsH5.H5):
     exclude_dets = None,
     load_cache   = True
     ):
-    x3py.lclsH5.H5.__init__(self,inputFilesOrExpRunTuple,detectors=detectors,\
+    lclsH5.H5.__init__(self,inputFilesOrExpRunTuple,detectors=detectors,\
     exclude=exclude_dets)
     setattr(config,"h5handles",self.h5); # useful for getting this info in other classes
     if load_cache: self.loadCache()
@@ -43,10 +43,12 @@ class Dataset(x3py.lclsH5.H5):
   def loadCache(self,path=None):
     if path is None: path= os.path.join(config.cachepath,os.path.basename(self.h5[0].filename))
     # find files
-    files = toolsOS.getCMD("find %s -name abstractDetector.npy"%path)
+    #files = toolsOS.getCMD("find %s -name abstractDetector.npy"%path)
+    files = list(glob.iglob(path + "/**",recursive=True))
+    files = [ f for f in files if f.find("abstractDetector.npy") > 0 ]
     files.sort( key=len ); # to have child (like .profile.timeTool) after .profile
-    relfiles = [os.path.relpath(f,path) for f in files]
-    for f,relf in zip(files,relfiles):
+    for f in files:
+      relf = os.path.relpath(f,path)
       dets = relf.split(os.path.sep)
       # make sure intermediate layers are available
       start = self
@@ -54,6 +56,7 @@ class Dataset(x3py.lclsH5.H5):
         if not hasattr(start,d): setattr(start,d,toolsVarious.DropObject(name=d))
         start = getattr(start,d)
       parent = start if start != self else None
+      print(f,relf)
       toolsDetectors.wrapArray(dets[-2],f,parent=parent)
       #self.detectors[dets[-1]]=det
       #setattr(start,dets[-2],det); done by wraparray
