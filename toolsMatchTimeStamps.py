@@ -36,7 +36,7 @@ def matchTimeStamps(*timestamps,returnCommonTimeStamp=False):
       detectors given as argument """
   assert ( len(timestamps) >= 2 )
   # get the timestamps (in case you give a detector)
-  timestamps = [ t.time[:] if hasattr(t,"time") else t for t in timestamps]
+  timestamps = [ t.getShots(slice(t._unFilteredNShots),what="time",useTimeStampFilter=False) if hasattr(t,"time") else t for t in timestamps]
   # run a first time to timestamp common to all
   idx,tcommon = matchTwoTimeStamps(timestamps[0],timestamps[1], \
                 returnCommonTimeStamp=True)

@@ -156,14 +156,16 @@ class Detector(object):
       time = _interpretSlices(getT,slices,nC,ravel,itemshape)
       return data,time
 
-  def getShots(self,shotSlice,calib=None,what="data"):
+  def getShots(self,shotSlice=None,calib=None,what="data",useTimeStampFilter=True):
     """ this function returns the shots independently of the calibcycle. In 
         other words if the first calibcycle has 100 shots, the shot 101 will
         be the first one of the second calibcycle;
         The idea behind such kind of access is data storage independent of
         calibcycles; if shots from a particular calib cycles are needed, the 
         calib keyword can be used."""
-    shotSlice = self._applyFilterToShotSlice(shotSlice,calib=calib)
+    if shotSlice is None: slice(self._unFilteredNShots); # unfiltered shots >= filter ones
+    if useTimeStampFilter:
+      shotSlice = self._applyFilterToShotSlice(shotSlice,calib=calib)
     if what == "time":
       if self._timecache is None:
         self._timecache = self._getCalibs(what="time",ravel=True)
