@@ -48,6 +48,7 @@ def wrapArray(mne,data,time=None,parent=None):
     temp = np.load(data)#.item()
     data = temp["data"]
     time = temp["time"]
+    temp.close()
     if time.ndim > 1: # savez sometimes transform list of arrays in 2d arrays
       data = [a for a in data]
       time = [t for t in time]
