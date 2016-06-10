@@ -9,14 +9,19 @@ from  .toolsMatchTimeStamps import matchTimeStamps
 
 class StructuredArrayDetector(object):
   def __init__(self,mne,data,time,parent=None):
-    assert data.dtype.names is not None
+    if not isinstance(data,(list,tuple)):
+      data = (data,)
+      time = (time,)
+    assert data[0].dtype.names is not None
     self.name,self.fullname = abstractDet.baptize(mne,parent)
-    self._kids = data.dtype.names
+    self._kids = data[0].dtype.names
     self._data = data
     self._time = time
     for name in self._kids:
-      setattr(self,name,wrapArray(name,data[name],time,parent=self))
-    if parent is not None: setattr(parent,mne,self)
+      temp = [calib[name] for calib in data]
+      setattr(self,name,wrapArray(name,temp,time,parent=self))
+    if parent is not None and not hasattr(parent,mne):
+      setattr(parent,mne,self)
 
   def __repr__(self):
     s  = "StructuredArrayDetector %s\n" % self.name
@@ -33,15 +38,19 @@ class StructuredArrayDetector(object):
     if detname == "auto": detname = self.fullname.replace(".","/")
     path = fname+"/"+detname
     if not os.path.exists( path ): os.makedirs(path)
-    np.save(path+"/abstractDetector.npy",dict(data=self._data, time=self._time))
+    log.warn("This function is not working if there are more than one calibcycles!!")
+    np.savez(path+"/abstractDetector.npz",data=self._data[0], time=self._time[0])
 
 def wrapArray(mne,data,time=None,parent=None):
   """ If data is a string, it is interpreted as filename of a
       numpy file containing a dictionary with 'data' and 'time' """
   if isinstance(data,str):
-    temp = np.load(data).item()
+    temp = np.load(data)#.item()
     data = temp["data"]
     time = temp["time"]
+    if time.ndim > 1: # savez sometimes transform list of arrays in 2d arrays
+      data = [a for a in data]
+      time = [t for t in time]
   if time is None and parent is not None: time=parent.time[:]
   if isStructuredArray(data):
     return StructuredArrayDetector(mne,data,time,parent)

@@ -203,7 +203,7 @@ class Detector(object):
       path = os.path.join(path,os.path.basename(config.h5handles[0].filename))
       if detname == "auto": detname = self.fullname.replace(".","/")
       path = os.path.join(path,detname)
-      fname = os.path.join(path,"abstractDetector.npy")
+      fname = os.path.join(path,"abstractDetector.npz")
     else:
       path = os.path.split(fname)[0]
     if not os.path.exists( path ): os.makedirs(path)
@@ -211,7 +211,7 @@ class Detector(object):
       data = [self.getShots(slice(0,self.lens[i]),calib=i,what="data") for i in range(self.nCalib)]
       if dtype is not None: data = [d.astype(dtype) for d in data]
       time = [self.getShots(slice(0,self.lens[i]),calib=i,what="time") for i in range(self.nCalib)]
-      np.save(fname,dict(data=data, time=time))
+      np.savez(fname,data=data, time=time)
     
   def defineTimeStampFilter(self,timeStampMatchFilter):
     """ Define time stamp filter to use, pass None to not use any filter """

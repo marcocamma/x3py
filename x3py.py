@@ -43,10 +43,13 @@ class Dataset(lclsH5.H5):
   def loadCache(self,path=None):
     if path is None: path= os.path.join(config.cachepath,os.path.basename(self.h5[0].filename))
     # find files
-    #files = toolsOS.getCMD("find %s -name abstractDetector.npy"%path)
-    files = list(glob.iglob(path + "/**",recursive=True))
-    files = [ f for f in files if f.find("abstractDetector.npy") > 0 ]
+    try:
+      files = list(glob.iglob(path + "/**",recursive=True))
+      files = [ f for f in files if f.find("abstractDetector.npz") > 0 ]
+    except TypeError: # python <=3.4 does not have recursive iglob
+      files = toolsOS.getCMD("find %s -name abstractDetector.npz"%path)
     files.sort( key=len ); # to have child (like .profile.timeTool) after .profile
+    print("Found in cache: ",files)
     for f in files:
       relf = os.path.relpath(f,path)
       dets = relf.split(os.path.sep)
@@ -56,10 +59,11 @@ class Dataset(lclsH5.H5):
         if not hasattr(start,d): setattr(start,d,toolsVarious.DropObject(name=d))
         start = getattr(start,d)
       parent = start if start != self else None
-      print(f,relf)
+      #print(f,relf)
       toolsDetectors.wrapArray(dets[-2],f,parent=parent)
       #self.detectors[dets[-1]]=det
       #setattr(start,dets[-2],det); done by wraparray
+    if len(files)>0: self._matchTimeStamps()
 
   def _matchTimeStampsTOFINISH(self,detectorList=None):
     # TODO: to be done: find kids and apply filter
