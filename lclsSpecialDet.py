@@ -60,6 +60,7 @@ class Epics(object):
     for pv in self.pv_names:
       mne = pv.replace(":","_").replace(".","_").replace(" ","_")
       setattr(self,mne,EpicsPV(mne,pv_datasets[pv]))
+      getattr(self,mne).defineDet()
     return 
         
 
