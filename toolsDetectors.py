@@ -99,6 +99,12 @@ def findDetectorsInsideObj(obj):
     else:
       dets.update( findDetectorsInsideObj(k) )
   return dets
+
+def timeInterpolation(det,newtime):
+  t = det.time[:]["seconds"] + det.time[:]["nanoseconds"]/1e9
+  v = det.data[:]
+  newt = newtime["seconds"]+newtime["nanoseconds"]/1e9
+  return np.interp(newt,t,v)
  
 def corrNonlinGetPar(linearDet,nonLinearDet,order=2,data_0=0,
     correct_0=0,plot=False,returnCorrectedDet=False):
