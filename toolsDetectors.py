@@ -38,8 +38,9 @@ class StructuredArrayDetector(object):
     if detname == "auto": detname = self.fullname.replace(".","/")
     path = fname+"/"+detname
     if not os.path.exists( path ): os.makedirs(path)
-    log.warn("This function is not working if there are more than one calibcycles!!")
-    np.savez(path+"/abstractDetector.npz",data=self._data[0], time=self._time[0])
+    log.warn("This function is not working if there are more than one calibcycles!! concatenating to one")
+    np.savez(path+"/abstractDetector.npz",data=np.vstack(self._data), time=np.vstack(self._time))
+
 
 def wrapArray(mne,data,time=None,parent=None):
   """ If data is a string, it is interpreted as filename of a
