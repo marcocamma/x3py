@@ -243,7 +243,7 @@ class Detector(object):
       first = self._unFilteredCumLens[calib-1] if calib>0 else 0
       last  = self._unFilteredCumLens[calib]-1
       if (self._timeStampMatchFilter is None):
-        ret = np.arange(first,last)[shotSlice]
+        ret = np.arange(first,last+1)[shotSlice]
       else:
         idx = (self._timeStampMatchFilter >= first) & \
               (self._timeStampMatchFilter <= last )
@@ -263,7 +263,7 @@ class Detector(object):
       calib,shotInCalib =  _fromShotIndexToCalibShot(s,self._unFilteredCumLens)
       args[calib].append(shotInCalib)
       nShotsToRead += 1
-    # exclude empyy calibs
+    # exclude empty calibs
     args = [ [i,a] for (i,a) in enumerate(args) if len(a)> 0 ]
     # try to put together read of the same calib; this speed up compressed cspad ...
     args = [ (calib,toolsVarious.tryToSlice(listOfShots)) for (calib,listOfShots) in args ]
