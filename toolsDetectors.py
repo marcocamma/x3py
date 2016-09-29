@@ -97,6 +97,9 @@ def findDetectorsInsideObj(obj):
   for k in kids:
     if isinstance(k,abstractDet.Detector):
       dets[k.fullname]=k
+      # next two lineas are for granparents
+      if (k != obj) and (k.parent != obj):
+        dets.update( findDetectorsInsideObj(k) )
     else:
       dets.update( findDetectorsInsideObj(k) )
   return dets
