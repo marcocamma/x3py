@@ -130,7 +130,7 @@ def corrNonlinGetPar(linearDet,nonLinearDet,order=2,data_0=0,
     plt.ylabel("nonLinearDet")
     plt.legend()
   if order>=2 and p[-3]<0:
-    log("corrNonlinGetPar: consistency problem, second order coefficient should \
+    log.warn("corrNonlinGetPar: consistency problem, second order coefficient should \
     be > 0, please double check result (plot=True) or try inverting the data and the\
     correct arguments")
 
