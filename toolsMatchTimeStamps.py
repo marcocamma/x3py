@@ -34,9 +34,14 @@ def matchTimeStamps(*timestamps,returnCommonTimeStamp=False):
       the funciton returns a list of arrays of len(t1),len(t2),...
       each is a boolean array. Elements that are true are shots that are in all
       detectors given as argument """
-  assert ( len(timestamps) >= 2 )
   # get the timestamps (in case you give a detector)
   timestamps = [ t.getShots(slice(t._unFilteredNShots),what="time",useTimeStampFilter=False) if hasattr(t,"time") else t for t in timestamps]
+  if len(timestamps) == 1:
+    idx = (np.ones_like(timestamps[0],dtype=bool),)
+    if returnCommonTimeStamp:
+      return idx,timestamps[0]
+    else:
+      return idx
   # run a first time to timestamp common to all
   idx,tcommon = matchTwoTimeStamps(timestamps[0],timestamps[1], \
                 returnCommonTimeStamp=True)
