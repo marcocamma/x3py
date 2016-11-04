@@ -41,7 +41,8 @@ detectors_xpp = """
   opal2    = Camera::Frame*/XppEndstation.0:Opal1000.2
   orca     = Camera::Frame*/XppEndstation.0:OrcaFl40.0
   rayonix  = Camera::Frame*/*:Rayonix.0
-  epix_cor = ndarray_float*/XppGon.0:Epix100a.0__epix:image
+  epix_cor = ndarray_float*/XppGon.0:Epix100a.*__epix:image
+  epix_raw = Epix::ElementV3/XppGon.0:Epix100a.*
   faststage_ps = UsdUsb::FexData*/XppEndstation.0:USDUSB.0
   faststage = UsdUsb::Data*/XppEndstation.0:USDUSB.0
 """
