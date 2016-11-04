@@ -38,7 +38,7 @@ class EpicsPV(Detector):
 
 class Epics(object):
   def __init__(self,h5handles,autoDiscovery=False):
-    self.h5handles = toolsVarious.iterfy(h5handles)
+    self._h5handles = toolsVarious.iterfy(h5handles)
     if autoDiscovery: self.definePVs()
     
   def definePVs(self):
@@ -46,9 +46,11 @@ class Epics(object):
     epics_str = config.epics
     _common = "Configure:0000/Run:0000/"
     pv_datasets = collections.defaultdict( list )
-    for h in self.h5handles:
+    for h in self._h5handles:
       pv_paths_per_handle = []
       calibs = h[_common].keys()
+      # remove ndarray_* fields found in some hdf5 files 
+      calibs = [c for c in calibs if c.find("CalibCycle") >= 0];
       for c in calibs:
         epicsArchiver = h[ os.path.join(_common,c,epics_str) ].keys()
         for e in epicsArchiver:
@@ -82,6 +84,8 @@ class EventCode(object):
 
   def autoDiscovery(self):
     [self._getData(i) for i in range(self.nCalib)]
+
+  def _getDataNewFormat(self,calib,shotSlice):
 
   def _getData(self,calib,shotSlice=None,code=140):
     if code not in self._out[calib]:
