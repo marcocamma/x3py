@@ -28,13 +28,18 @@ class Hdf5Detector(object):
 
   def _getCalibPointer(self,calib,what=None):
     h5,path = self.calibs[calib]
-    if what is None:
-      pass
-    elif what == "time":
+    if what == "time":
       path = path + "/" + self._time_field
     elif what == "data":
       path = path + "/" + self._data_field
-    return h5[path]
+    elif what is None:
+      pass
+    else:
+      path = path + "/" + what
+    if path in h5:
+      return h5[path]
+    else:
+      None
 
   def getDataPointer(self,calib):
     return self._getCalibPointer(calib,what="data")

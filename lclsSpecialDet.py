@@ -73,8 +73,7 @@ class EventCode(object):
     self.nCalib = parent.nCalib
     self._out   = dict()
     for c in range(self.nCalib):
-      self._out[c] = dict()
-      self._out[c] = dict()
+      self._out[c] = None
     self._foundCodes = []
     if autoDiscovery: self.autoDiscovery()
 
@@ -84,25 +83,42 @@ class EventCode(object):
 
   def autoDiscovery(self):
     [self._getData(i) for i in range(self.nCalib)]
+    for code in self._foundCodes: self._defineDetector(code)
+    self._foundCodes.sort()
 
-  def _getDataNewFormat(self,calib,shotSlice):
+  def _getDataNewFormat(self,calib):
+    matrix = self.parent._getCalibPointer(calib,what="present")
+    if matrix is None:
+      raise KeyError("New data format not found")
+    else:
+      log.debug("Reading new eventcodes format (/present) for calib %d"%calib)
+      self._out[calib] = matrix[:].astype(np.bool).T; # need code as first index
+      # find codes that are non zero at least once
+      nCodes = self._out[calib].shape[0]
+      codes = [ x for x in range(nCodes) if np.sum(self._out[calib][x]) > 0]
+      # add non-zeros codes in list of found codes
+      for c in codes:
+        if c not in self._foundCodes: self._foundCodes.append(c)
+
+  def _getDataOldFormat(self,calib,code):
+    log.debug("Reading old eventcodes format (vlen) for calib %d"%calib)
+    data = self.parent.getData(calib)
+    nShots = data.shape[0]
+    self._out[calib] = np.zeros( (256,nShots), dtype=np.bool)
+    for i in range(nShots):
+      codeList = data[i]["fifoEvents"]["eventCode"]
+      for code in codeList:
+        self._out[calib][code,i] = True
+        if code not in self._foundCodes: self._foundCodes.append(code)
 
   def _getData(self,calib,shotSlice=None,code=140):
-    if code not in self._out[calib]:
-      data = self.parent.getData(calib)
-      nShots = data.shape[0]
-      for i in range(nShots):
-        codeList = data[i]["fifoEvents"]["eventCode"]
-        for code in codeList:
-          if code not in self._out[calib]:
-            self._out[calib][code] =  np.zeros(nShots,dtype=np.bool)
-          self._out[calib][code][i] = True
-      # add discovered keys
-      for code in self._out[calib].keys():
-        if code not in self._foundCodes:
-          self._foundCodes.append(code)
-          self._foundCodes.sort()
-          self._defineDetector(code)
+    # check if data have been cached
+    if self._out[calib] is None:
+      try:
+        self._getDataNewFormat(calib)
+      except KeyError:
+        self._getDataOldFormat(calib,code)
+  
     if shotSlice is not None:
       return self._out[calib][code][shotSlice]
     else:
@@ -110,9 +126,10 @@ class EventCode(object):
 
   def __repr__(self):
     s  = "lclsSpecialDet.EventCode (obj id %s)\n" % (hex(id(self)))
-    s += "  codes found (so far): %s\n" % str(self._foundCodes)
+    s += "  non-always-false codes found: %s\n" % str(self._foundCodes)
+    s += "  Guessed Frequency (based on first 400 shots):\n"
     for c in self._foundCodes:
-      v = self.getDetCode(c)[:200]
+      v = self.getDetCode(c)[:400]
       try:
         spacing_true  = np.diff( np.argwhere(  v ).ravel() )[0] 
       except IndexError:
